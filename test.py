@@ -5,15 +5,14 @@ Spyder Editor
 This is a temporary script file.
 """
 
-from trainingDataReader import ConlluFileReader
+from sentenceDependencies import ConlluFileReader, ConlluFileWriter
 from wordEmbeddingsReader import GloVeFileReader
 from gensim.models import Word2Vec
 import numpy as np
-#import pytorch as torch
+import torch
 
 trainingSetReader = ConlluFileReader(r"UD_English/en-ud-train.conllu")
 trainingSet = trainingSetReader.readTrainingSet()
-#print(trainingSet[0])
 
 # This is for word2vec training of the POS tags
 posTagsTrainingSet = []
@@ -56,6 +55,14 @@ for sentence in trainingSet:
             wordVector = wordsModel[v.word]
         vectors.append(np.concatenate((wordVector, POSTagsModel[v.POSTag])))
 
-#torch.nn.LSTM()
+#inputSize = 10
+#hiddenSize = 20
+#nLayers = 2
+#
+#bilstm = torch.nn.LSTM(inputSize, hiddenSize, nLayers)
 
 
+
+
+#writer = ConlluFileWriter('cosa.conllu')
+#writer.write(trainingSet)
