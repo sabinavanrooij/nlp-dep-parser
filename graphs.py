@@ -81,33 +81,40 @@ def contract_graph(G,C):
     nodes = list(G_c.nodes)
     nodes.remove(newnode)
     nodes_withoutroot = nodes
-    print(nodes)
-    #print(nodes_noroot.remove(1))
+    nodes_withoutroot.remove(1)
     for u,v in C:
         weightset = False
-        for node in nodes_withoutroot:
+        for node in nodes:
             if weightset == False:
-                min_inweight = G[u][node]['weight']
-                min_inedge = (u,node)
+                min_outweight = G[u][node]['weight']
+                min_outedge = (u,node)
                 weightset = True
                 #print(min_inweight,min_inedge)
-            if G[u][node]['weight'] < min_inweight:
-                min_inweight = G[u][node]['weight']
-                min_inedge = (u,node)
-        G_c.add_edge(min_inedge[0],newnode,weight=min_inweight,original_endpoint=min_inedge[1])
+            if G[u][node]['weight'] < min_outweight:
+                min_outweight = G[u][node]['weight']
+                min_outedge = (u,node)
+        G_c.add_edge(newnode,min_outedge[1],weight=min_outweight,original_endpoint=min_outedge[1])
     
-    #get min. outgoing edges out of the cycle
-    #for u,v in C:
+    #get min. incoming edges into the cycle
+    nodes.append(1)
+    for node in nodes:
+        print("node",node)
+        for u,v in C:
+            min_inweight = G[node][u]['weight']
+            print(min_inweight)
+            for a,b in C:
+                if b!=u:
+                    min_inweight += G[a][b]['weight']
+            print(min_inweight)
         
     
     
-    #print(G_c.edges(data='weight'))
+    print(G_c.edges(data='weight'))
     return G_c
     
-test = (contract_graph(G,[(3,4),(4,3)]))
+test = contract_graph(G,[(3,4),(4,3)])
 #print(test.nodes)
 
-#FUNCTION NOT BEING USED! 
 #takes a list of edges andreturns a list with edges that form a cycle 
 #in a graph even if there are multiple cycles, it just returns one cycle
 def returncycle(T):
