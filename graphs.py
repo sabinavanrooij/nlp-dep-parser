@@ -133,19 +133,17 @@ def returnTree(G):
     return F
 
 #function takes in graph G and returns the MST of that graph
-#assumes node 1 is the root node, so we can loop over
+#assumes node 1 is the root node, so we can loop over the rest
 def findMST(G):    
     F = returnTree(G)
-    
     #now we check if F is a tree (there are no cycles)
-    #TO ADD: also check if every node except the root node has 
-    #exactly one edge entering! 
+    #TO ADD: also check if every node except the root node has exactly one edge entering! 
     if is_tree(F):
         return F
     else:
         C = find_cycle(F)
         G_prime = contract_graph(G,C)
-        T_prime = returnTree(G_prime)
+        T_prime = findMST(G_prime)
         if is_tree(T_prime):
             T = extract_graph(T_prime,G_prime,C)
             return T
