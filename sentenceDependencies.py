@@ -90,7 +90,7 @@ class ConlluFileWriter:
                 if v.head == -1:
                     items.append(undefinedField)
                 else:
-                    items.append(self.getFormatedIndex(v.head))
+                    items.append(self.getFormattedIndex(v.head))
                 items.append(v.label)
                 items.append(undefinedField)
                 items.append(undefinedField)
