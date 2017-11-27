@@ -66,7 +66,7 @@ class ConlluFileWriter:
     def __init__(self, filePath):
         self.filePath = filePath
     
-    def getFormatedIndex(self, index):
+    def getFormattedIndex(self, index):
         if index.is_integer():
             return str(int(index))
         return str(index)
@@ -81,7 +81,7 @@ class ConlluFileWriter:
                 sentence.append(v.word)
                 items = []
                 
-                items.append(self.getFormatedIndex(v.index))
+                items.append(self.getFormattedIndex(v.index))
                 items.append(v.word)
                 items.append(undefinedField)
                 items.append(v.POSTag)
