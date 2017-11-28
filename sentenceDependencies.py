@@ -49,7 +49,12 @@ class ConlluFileReader:
                 continue
                 
             items = line.split(itemsSeparator)
-            index = float(items[0]) # this can be a float if the word is implicit in the sentence
+            
+            # this can be a float or a range if the word is implicit in the sentence
+            if not items[0].is_integer():
+                continue
+                
+            index = int(items[0]) 
             head = items[6] # this can be '_' for implicit words that were added, change to -1
             if head == undefinedField:
                 head = -1
