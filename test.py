@@ -25,9 +25,11 @@ for example in trainingSet:
         sentence.append(example.tokens[tokenKey].POSTag)
     posTagsTrainingSet.append(sentence)
 
+
+
 posTags_embeddings_dim = 100
 
-POSTagsModel = Word2Vec(posTagsTrainingSet, size=posTags_embeddings_dim, window=5, min_count=0, workers=4)
+POSTagsModel = Word2Vec(posTagsTrainingSet, size=posTags_embeddings_dim, window=5, min_count=5, workers=4)
 #print(POSTagsModel.wv.vocab.keys())
 #print(type(POSTagsModel['DET']))
 
@@ -45,7 +47,7 @@ for example in trainingSet:
         sentence.append(example.tokens[tokenKey].word)
     wordsTrainingSet.append(sentence)
 
-wordsModel = Word2Vec(wordsTrainingSet, size=word_embeddings_dim, window=5, min_count=0, workers=4)
+wordsModel = Word2Vec(wordsTrainingSet, size=word_embeddings_dim, window=5, min_count=5, workers=4)
 
 sentenceVectors = []
 for sentence in trainingSet:
@@ -58,35 +60,33 @@ for sentence in trainingSet:
         vectors.append(np.concatenate((wordVector, POSTagsModel[v.POSTag])))
     sentenceVectors.append(vectors)
 
-# I'm guessing this is per sentence
 
-for vector in sentenceVectors:    
+# LSTM training
+inputSize = word_embeddings_dim + posTags_embeddings_dim # The number of expected features in the input x
+hiddenSize = inputSize * 2 # 512?
+nLayers = 2
+nDirections = 2
+batch = 1 # for now
+seq_len = len(sentenceVectors) # number of sentences
 
-    # LSTM training
-    inputSize = word_embeddings_dim + posTags_embeddings_dim # The number of expected features in the input x
-    hiddenSize = inputSize * 2 # 512?
-    nLayers = 2
-    nDirections = 2
-    batch = 3
-    seq_len = len(vector) #5 # time
-    
-    biLstm = torch.nn.LSTM(inputSize, hiddenSize, nLayers, bidirectional=True)
-    
-#    inputVar = Variable(torch.randn(seq_len, batch, inputSize))
-    
-#    inputVar = Variable(torch.from_numpy(np.array(vector)))
-    
-    print(np.array(vector).shape)
-    break
-    
-#    hiddenState0Var = Variable(torch.randn(nLayers * nDirections, batch, hiddenSize))
-#    cellState0Var = Variable(torch.randn(nLayers * nDirections, batch, hiddenSize))
-#    output, hidden = biLstm(inputVar, (hiddenState0Var, cellState0Var))
-    
-    #print(output)
-    #print(hidden)
+biLstm = torch.nn.LSTM(inputSize, hiddenSize, nLayers, bidirectional=True)
+
+# apparently this is the actual input
+inputs = Variable(torch.randn(seq_len, batch, inputSize))
+print(inputs.size())
+
+#tensor = torch.from_numpy(np.array(sentenceVectors))
+#print(tensor.size())
+print(sentenceVectors[0])
+
+initialHiddenState = Variable(torch.randn(nLayers * nDirections, batch, hiddenSize))
+initialCellState = Variable(torch.randn(nLayers * nDirections, batch, hiddenSize))
+#output, hidden = biLstm(inputs, (initialHiddenState, initialCellState))
+
+#print(output)
+#print(hidden)
 
 
 
-#writer = ConlluFileWriter('cosa.conllu')
+#writer = ConlluFileWriter('testFile.conllu')
 #writer.write(trainingSet)
