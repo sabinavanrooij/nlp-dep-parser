@@ -1,3 +1,5 @@
+from collections import Counter
+
 class Token:
     def __init__(self, index, word, POSTag, head, label):
         self.index = index
@@ -33,34 +35,42 @@ undefinedField = '_'
 class ConlluFileReader:
     def __init__(self, filePath):
         self.filePath = filePath
+        self.wordCounts = Counter()
         
-    def readTrainingSet(self):
+    def readSentencesDependencies(self):
         f = open(self.filePath, 'r')
-        trainingSet = []
-        trainingExample = SentenceDependencies()
+        sentencesDeps = []
+        sentenceDep = SentenceDependencies()
         
-        for line in f.readlines():            
+        for line in f.readlines():
             if line.startswith(commentSymbol):
                 continue
             
             if line.isspace(): # end of the sentence
-                trainingSet.append(trainingExample)
-                trainingExample = SentenceDependencies()
+                sentencesDeps.append(sentenceDep)
+                sentenceDep = SentenceDependencies()
                 continue
                 
             items = line.split(itemsSeparator)
-            index = float(items[0]) # this can be a float if the word is implicit in the sentence
+            
+            # this can be a float or a range if the word is implicit in the sentence
+            if not float(items[0]).is_integer():
+                continue
+                
+            index = int(items[0]) 
             head = items[6] # this can be '_' for implicit words that were added, change to -1
             if head == undefinedField:
                 head = -1
             else:
                 head = float(head)
             
-            trainingExample.addToken(Token(index, items[1], items[3], head, items[7]))
+            sentenceDep.addToken(Token(index=index, word=items[1], POSTag=items[3], head=head, label=items[7]))
+            self.wordCounts[items[1]] += 1            
         
         f.close()
         
-        return trainingSet
+        return sentencesDeps    
+
 
 class ConlluFileWriter:
     def __init__(self, filePath):
