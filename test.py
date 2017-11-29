@@ -10,10 +10,9 @@ from dataProcessor import DataProcessor
 from wordEmbeddingsReader import GloVeFileReader
 from gensim.models import Word2Vec
 import numpy as np
-#import torch
-#from torch.autograd import Variable
 from model import DependencyParseModel
-
+import torch
+from torch.autograd import Variable
 
 dataProcessor = DataProcessor(r"UD_English/en-ud-train.conllu")
 w2i, t2i, l2i, i2w, i2t, i2l = dataProcessor.buildDictionaries()
@@ -35,19 +34,6 @@ wordsEmbeddings = wordEmbeddingsReader.readWordEmbeddings()
 # Or train the embeddings too
 wordsModel = Word2Vec(sentencesInWords, size=word_embeddings_dim, window=5, min_count=minCountWord2Vec_words, workers=4)
 
-
-#sentenceVectors = []
-#for sentence in wordsTrainingSet:
-#    vectors = []
-#    for k, v in sentence.tokens.items():        
-#        if v.word in wordsEmbeddings:
-#            wordVector = wordsEmbeddings[v.word]
-#        else:
-#            wordVector = wordsModel[v.word]
-#        vectors.append(np.concatenate((wordVector, POSTagsModel[v.POSTag])))
-#    sentenceVectors.append(vectors)
-
-
 # LSTM training prep
 vocabularySize = len(w2i)
 tagsUniqueCount = len(t2i)
@@ -55,7 +41,7 @@ tagsUniqueCount = len(t2i)
 pretrainedWordEmbeddings = np.empty((vocabularySize, word_embeddings_dim))
 for k,v in i2w.items():
     if v in wordsEmbeddings:
-        pretrainedWordEmbeddings[k] = np.array(wordsEmbeddings[v])
+        pretrainedWordEmbeddings[k] = wordsEmbeddings[v]
     elif v in wordsModel.wv.vocab:
         pretrainedWordEmbeddings[k] = wordsModel[v]
     else:
@@ -66,28 +52,24 @@ for k,v in i2t.items():
     assert v in POSTagsModel.wv.vocab
     pretrainedTagEmbeddings[k] = POSTagsModel[v]
 
+
 model = DependencyParseModel(word_embeddings_dim, posTags_embeddings_dim, vocabularySize, tagsUniqueCount, pretrainedWordEmbeddings, pretrainedTagEmbeddings)
+  
+
+assert len(sentencesInWords) == len(sentencesInTags)
+
+for i in range(len(sentencesInWords)):
+    assert len(sentencesInWords[i]) == len(sentencesInTags[i])
     
+    wordsToIndices = [w2i[w] for w in sentencesInWords[i]]
+    words_tensor = torch.LongTensor(wordsToIndices)
+    
+    tagsToIndices = [t2i[t] for t in sentencesInTags[i]]
+    tags_tensor = torch.LongTensor(tagsToIndices)
 
-#nDirections = 2
-#batch = 1 # this is per recommendation
-#seq_len = len(sentence) # number of words
+    #Forward pass
+    scores = model(Variable(words_tensor), Variable(tags_tensor))
 
-
-# apparently this is the actual input
-#inputs = Variable(torch.randn(seq_len, batch, inputSize))
-#print(inputs.size())
-
-#tensor = torch.from_numpy(np.array(sentenceVectors))
-#print(tensor.size())
-#print(sentenceVectors[0])
-
-#initialHiddenState = Variable(torch.randn(nLayers * nDirections, batch, hiddenSize))
-#initialCellState = Variable(torch.randn(nLayers * nDirections, batch, hiddenSize))
-#output, hidden = biLstm(inputs, (initialHiddenState, initialCellState))
-
-#print(output)
-#print(hidden)
 
 
 #writer = ConlluFileWriter('testFile.conllu')
