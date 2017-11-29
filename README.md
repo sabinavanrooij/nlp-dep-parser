@@ -23,7 +23,7 @@ Embedding layer for words <i>Done</i>
 
 Support for optional pretrained word embeddings <i>Done</i>
 
-Embedding layer for POs tags <i>Done</i>
+Embedding layer for POS tags <i>Done</i>
 
 Support for optional pretrained tag embeddings <i>Done</i>
 
