@@ -36,16 +36,7 @@ wordsEmbeddings = wordEmbeddingsReader.readWordEmbeddings()
 wordsModel = Word2Vec(sentencesInWords, size=word_embeddings_dim, window=5, min_count=minCountWord2Vec_words, workers=4)
 
 
-#sentenceVectors = []
-#for sentence in wordsTrainingSet:
-#    vectors = []
-#    for k, v in sentence.tokens.items():        
-#        if v.word in wordsEmbeddings:
-#            wordVector = wordsEmbeddings[v.word]
-#        else:
-#            wordVector = wordsModel[v.word]
 #        vectors.append(np.concatenate((wordVector, POSTagsModel[v.POSTag])))
-#    sentenceVectors.append(vectors)
 
 
 # LSTM training prep
@@ -55,7 +46,7 @@ tagsUniqueCount = len(t2i)
 pretrainedWordEmbeddings = np.empty((vocabularySize, word_embeddings_dim))
 for k,v in i2w.items():
     if v in wordsEmbeddings:
-        pretrainedWordEmbeddings[k] = np.array(wordsEmbeddings[v])
+        pretrainedWordEmbeddings[k] = wordsEmbeddings[v]
     elif v in wordsModel.wv.vocab:
         pretrainedWordEmbeddings[k] = wordsModel[v]
     else:
