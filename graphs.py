@@ -1,48 +1,76 @@
 # -*- coding: utf-8 -*-
 
 import networkx as nx
+import numpy as np
+import itertools
 from networkx.algorithms.tree.branchings import Edmonds
 from networkx.algorithms.tree import is_tree
 from networkx.algorithms.cycles import find_cycle
-
-G = nx.DiGraph()
-G.add_node(1)
-G.add_node(2)
-G.add_node(3)
-G.add_node(4)
-G.add_edge(1,2,weight=12)
-G.add_edge(1,3,weight=4)
-G.add_edge(1,4,weight=4)
-G.add_edge(2,3,weight=5)
-G.add_edge(3,2,weight=6)
-G.add_edge(3,4,weight=8)
-G.add_edge(4,3,weight=7)
-G.add_edge(2,4,weight=7)
-G.add_edge(4,2,weight=5)
 
 #G = nx.DiGraph()
 #G.add_node(1)
 #G.add_node(2)
 #G.add_node(3)
 #G.add_node(4)
-#G.add_node(5)
-#G.add_edge(1,2,weight=0)
-#G.add_edge(1,3,weight=15)
-#G.add_edge(1,4,weight=0)
-#G.add_edge(1,5,weight=0)
+#G.add_edge(1,2,weight=12)
+#G.add_edge(1,3,weight=4)
+#G.add_edge(1,4,weight=4)
 #G.add_edge(2,3,weight=5)
-#G.add_edge(2,4,weight=5)
-#G.add_edge(2,5,weight=15)
-#G.add_edge(3,2,weight=20)
-#G.add_edge(3,4,weight=5)
-#G.add_edge(3,5,weight=30)
-#G.add_edge(4,2,weight=10)
-#G.add_edge(4,3,weight=20)
-#G.add_edge(4,5,weight=5)
-#G.add_edge(5,2,weight=5)
-#G.add_edge(5,3,weight=10)
-#G.add_edge(5,4,weight=15)
+#G.add_edge(3,2,weight=6)
+#G.add_edge(3,4,weight=8)
+#G.add_edge(4,3,weight=7)
+#G.add_edge(2,4,weight=7)
+#G.add_edge(4,2,weight=5)
 
+G = nx.DiGraph()
+G.add_node(1)
+G.add_node(2)
+G.add_node(3)
+G.add_node(4)
+G.add_node(5)
+G.add_edge(1,2,weight=0)
+G.add_edge(1,3,weight=15)
+G.add_edge(1,4,weight=0)
+G.add_edge(1,5,weight=0)
+G.add_edge(2,3,weight=5)
+G.add_edge(2,4,weight=5)
+G.add_edge(2,5,weight=15)
+G.add_edge(3,2,weight=20)
+G.add_edge(3,4,weight=5)
+G.add_edge(3,5,weight=30)
+G.add_edge(4,2,weight=10)
+G.add_edge(4,3,weight=20)
+G.add_edge(4,5,weight=5)
+G.add_edge(5,2,weight=5)
+G.add_edge(5,3,weight=10)
+G.add_edge(5,4,weight=15)
+
+
+
+def matrix_to_graph(A, sent, labels, digraph=False):
+    k = A.shape[0]
+    nodes = range(k)
+    if digraph:
+        # This function turns a np matrix into a directed graph
+        G = nx.from_numpy_matrix(A, create_using=nx.DiGraph())
+        # Trying to get labels on the arcs... No succes yet
+        labels = {(i, j, A[i,j]): np.random.choice(labels) for i,j in itertools.product(nodes, nodes)}
+    else:
+        G = nx.from_numpy_matrix(A)
+        
+    for k, w in enumerate(sent):
+        G.node[k]['word'] = w
+        
+    weighted_edges = {(i, j): A[i,j] for i,j in itertools.product(nodes, nodes)}
+    return G, weighted_edges
+
+A = np.random.random((11,11))
+labels = ["nsubj", "dobj", "iobj", "det", "nmod", "amod", "cc", "conj"]
+sent = "This is a test sentence".split()
+diG, edges = matrix_to_graph(A, sent, labels, digraph=True)
+diG.remove_node(0)
+for i in range(1,len(A)):
+    diG.remove_edge(i,1)
 
 #function that takes a graph and cycle (list of edges) and returns
 #a graph with len(cycle) - 1 
@@ -87,7 +115,7 @@ def contract_graph(G,C):
             if inweight > min_inweight:
                 min_inweight = inweight
                 min_inedge = (node,u)
-        G_c.add_edge(min_inedge[0],newnode, weight = min_inweight,original_endpoint=min_inedge[1])        
+        G_c.add_edge(min_inedge[0],newnode, weight = min_inweight,original_endpoint=min_inedge[1])
         
     return G_c
 
@@ -144,9 +172,19 @@ def findMST(G):
         C = find_cycle(F)
         G_prime = contract_graph(G,C)
         T_prime = findMST(G_prime)
-        if is_tree(T_prime):
-            T = extract_graph(T_prime,G_prime,C)
-            return T
+        #if is_tree(T_prime):
+        T = extract_graph(T_prime,G_prime,C)
+        return T
 
-test = findMST(G)
-print(test.edges)
+test = findMST(diG)
+print(set(test.edges))
+
+def minimum_tree(G):
+    edmonds = Edmonds(G)
+    tree = edmonds.find_optimum()
+    return tree
+
+test2 = minimum_tree(diG)
+print(set(test2.edges))
+
+print((set(test.edges) == set(test2.edges)))
