@@ -20,9 +20,9 @@ w2i, t2i, l2i, i2w, i2t, i2l = dataProcessor.buildDictionaries()
 sentencesInWords, sentencesInTags = dataProcessor.getTrainingSetsForWord2Vec()
 
 word_embeddings_dim = 50
-posTags_embeddings_dim = 100
+posTags_embeddings_dim = 50
 minCountWord2Vec_words = 5
-minCountWord2Vec_tags = 0
+minCountWord2Vec_tags =5
 
 # Train the POS tags
 POSTagsModel = Word2Vec(sentencesInTags, size=posTags_embeddings_dim, window=5, min_count=minCountWord2Vec_tags, workers=4)
@@ -69,7 +69,7 @@ for i in range(len(sentencesInWords)):
 
     #Forward pass
     scores = model(Variable(words_tensor), Variable(tags_tensor))
-
+    break # just for now
 
 
 #writer = ConlluFileWriter('testFile.conllu')
