@@ -22,7 +22,7 @@ sentencesInWords, sentencesInTags = dataProcessor.getTrainingSetsForWord2Vec()
 word_embeddings_dim = 50
 posTags_embeddings_dim = 50
 minCountWord2Vec_words = 5
-minCountWord2Vec_tags =5
+minCountWord2Vec_tags = 0
 
 # Train the POS tags
 POSTagsModel = Word2Vec(sentencesInTags, size=posTags_embeddings_dim, window=5, min_count=minCountWord2Vec_tags, workers=4)
