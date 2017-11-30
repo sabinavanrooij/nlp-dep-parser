@@ -25,18 +25,24 @@ class DependencyParseModel(nn.Module):
             self.tag_embeddings.weight.data.copy_(torch.from_numpy(pretrainedTagEmbeddings))
         
         self.inputSize = word_embeddings_dim + tag_embeddings_dim # The number of expected features in the input x
-        hiddenSize = self.inputSize #* 2 # 512? is this the same as outputSize?
-        nLayers = 2
+        self.hiddenSize = self.inputSize #* 2 # 512? is this the same as outputSize?
+        self.nLayers = 2
         
-        self.biLstm = nn.LSTM(self.inputSize, hiddenSize, nLayers, bidirectional=True)
+        self.biLstm = nn.LSTM(self.inputSize, self.hiddenSize, self.nLayers, bidirectional=True)
         
-        nDirections = 2
+        self.nDirections = 2
         self.batch = 1 # this is per recommendation
         
         # Initial states
-        self.hiddenState = Variable(torch.randn(nLayers * nDirections, self.batch, hiddenSize))
-        self.cellState = Variable(torch.randn(nLayers * nDirections, self.batch, hiddenSize))
+        self.hiddenState, self.cellState = self.initHiddenCellState()
         
+    def initHiddenCellState(self):
+        hiddenState = Variable(torch.randn(self.nLayers * self.nDirections, self.batch, self.hiddenSize))
+        cellState = Variable(torch.randn(self.nLayers * self.nDirections, self.batch, self.hiddenSize))
+        
+        return hiddenState, cellState
+    
+    
     def forward(self, wordsTensor, tagsTensor):
         wordEmbeds = self.word_embeddings(wordsTensor)
         tagEmbeds = self.tag_embeddings(tagsTensor)        
@@ -54,5 +60,5 @@ class DependencyParseModel(nn.Module):
         
         output, (self.hiddenState, self.cellState) = self.biLstm(inputTensor.view(seq_len, self.batch, self.inputSize), (self.hiddenState, self.cellState))
         
-        return output, (self.hiddenState, self.cellState)
+        return output
         
