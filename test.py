@@ -61,6 +61,9 @@ assert len(sentencesInWords) == len(sentencesInTags)
 for i in range(len(sentencesInWords)):
     assert len(sentencesInWords[i]) == len(sentencesInTags[i])
     
+    # Clear hidden and cell previous state
+    model.hiddenState, model.cellState = model.initHiddenCellState()
+    
     wordsToIndices = [w2i[w] for w in sentencesInWords[i]]
     words_tensor = torch.LongTensor(wordsToIndices)
     
@@ -68,7 +71,8 @@ for i in range(len(sentencesInWords)):
     tags_tensor = torch.LongTensor(tagsToIndices)
 
     #Forward pass
-    scores = model(Variable(words_tensor), Variable(tags_tensor))
+    newMatrix = model(Variable(words_tensor), Variable(tags_tensor))
+    print(newMatrix)
     break # just for now
 
 
