@@ -5,7 +5,7 @@ Spyder Editor
 This is a temporary script file.
 """
 
-#from sentenceDependencies import ConlluFileWriter
+# from sentenceDependencies import ConlluFileWriter
 from dataProcessor import DataProcessor
 from wordEmbeddingsReader import GloVeFileReader
 from gensim.models import Word2Vec
@@ -13,6 +13,8 @@ import numpy as np
 from model import DependencyParseModel
 import torch
 from torch.autograd import Variable
+from MLP import MLP
+import itertools
 
 dataProcessor = DataProcessor(r"UD_English/en-ud-train.conllu")
 w2i, t2i, l2i, i2w, i2t, i2l = dataProcessor.buildDictionaries()
@@ -70,9 +72,26 @@ for i in range(len(sentencesInWords)):
     tagsToIndices = [t2i[t] for t in sentencesInTags[i]]
     tags_tensor = torch.LongTensor(tagsToIndices)
 
-    #Forward pass
+    # Forward pass
     newVector = model(Variable(words_tensor), Variable(tags_tensor))
     print(newVector)
+
+
+    # MLP
+
+    scoreTensor = torch.FloatTensor(len(sentencesInWords[i]), len(sentencesInWords[i])).zero_()
+
+    mlp = MLP(newVector[0, :, :].size()[1] * 2, 400)
+
+    permutations = list(itertools.permutations([x for x in range(len(sentencesInWords[i]))], 2))
+
+    for permutation in permutations:
+        hvector = torch.cat((newVector[permutation[0], :, :], newVector[permutation[1], :, :]), 1)
+        score = mlp(hvector)
+        scoreTensor[permutation[0], permutation[1]] = float(score.data[0].numpy()[0])
+
+
+
     break # just for now
 
 
