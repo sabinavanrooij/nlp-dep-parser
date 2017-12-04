@@ -1,5 +1,5 @@
 """
-Multilayer perceptron to distinguish between head and
+Multilayer perceptron to distinguish between head and dependent
 """
 
 import torch

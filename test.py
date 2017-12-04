@@ -79,15 +79,20 @@ for i in range(len(sentencesInWords)):
 
     # MLP
 
+    # Creation of dependency matrix. size: (length of sentence) x (length of sentence)
     scoreTensor = torch.FloatTensor(len(sentencesInWords[i]), len(sentencesInWords[i])).zero_()
 
     mlp = MLP(newVector[0, :, :].size()[1] * 2, 400)
 
+    # All possible combinations between head and dependent for the given sentence
     permutations = list(itertools.permutations([x for x in range(len(sentencesInWords[i]))], 2))
 
+    # Concatenate the vector corresponding to the words for all permutations
     for permutation in permutations:
         hvector = torch.cat((newVector[permutation[0], :, :], newVector[permutation[1], :, :]), 1)
         score = mlp(hvector)
+
+        # Fill dependency matrix
         scoreTensor[permutation[0], permutation[1]] = float(score.data[0].numpy()[0])
 
 
