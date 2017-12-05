@@ -80,7 +80,10 @@ class DependencyParseModel(nn.Module):
     
             # Fill dependency matrix
             scoreTensor[permutation[0], permutation[1]] = float(score.data[0].numpy()[0])
+
+        # Normalize the columns
+        for i in range(nWordsInSentence):
+            scoreTensor[:, i] = scoreTensor[:, i] / sum(scoreTensor[:, i])
         
-        
+        print(scoreTensor)
         return scoreTensor
-        
