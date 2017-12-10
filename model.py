@@ -96,6 +96,10 @@ class DependencyParseModel(nn.Module):
         for i in range(nWordsInSentence):
             scoreTensor[:, i] = scoreTensor[:, i] / sum(scoreTensor[:, i])
         
+        # Use Softmax to get a positive value between 0 and 1
+        m = nn.Softmax()
+        scoreTensor = m(scoreTensor)
+        
 #        print(scoreTensor)
             
             
