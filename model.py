@@ -59,9 +59,21 @@ class DependencyParseModel(nn.Module):
         
         return hiddenState, cellState    
     
-    def forward(self, wordsTensor, tagsTensor):
+    def forward(self, sentenceDependencies, w2i, t2i):
+        
+        sentenceInWords, sentenceInTags = sentenceDependencies.getSentenceInWordsAndInTags()
+    
+        wordsToIndices = [w2i[w] for w in sentenceInWords]
+        words_tensor = torch.LongTensor(wordsToIndices)
+        
+        tagsToIndices = [t2i[t] for t in sentenceInTags]
+        tags_tensor = torch.LongTensor(tagsToIndices)
+        
+        wordsTensor = Variable(words_tensor)
+        tagsTensor = Variable(tags_tensor)
+        
         wordEmbeds = self.word_embeddings(wordsTensor)
-        tagEmbeds = self.tag_embeddings(tagsTensor)        
+        tagEmbeds = self.tag_embeddings(tagsTensor)
         
 #        print(wordEmbeds.size()[0])
 #        print(tagEmbeds.size())
@@ -102,7 +114,8 @@ class DependencyParseModel(nn.Module):
         
 #        print(scoreTensor)
             
-            
+        # Do something with adjacency matrix
+        # sentenceDependencies.getAdjacencyMatrx()
         
             
         return scoreTensor
