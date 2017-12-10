@@ -71,8 +71,8 @@ for i in range(len(sentencesInWords)):
     tags_tensor = torch.LongTensor(tagsToIndices)
 
     # Forward pass
-    hVector = model(Variable(words_tensor), Variable(tags_tensor))
-
+    result = model(Variable(words_tensor), Variable(tags_tensor))
+    print(result)
     break # just for now
 
 
