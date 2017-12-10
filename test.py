@@ -60,8 +60,6 @@ for k,v in i2t.items():
 
 model = DependencyParseModel(word_embeddings_dim, posTags_embeddings_dim, vocabularySize, tagsUniqueCount, pretrainedWordEmbeddings, pretrainedTagEmbeddings)
 
-assert len(sentencesInWords) == len(sentencesInTags)
-
 for s in sentencesDependencies:    
     # Clear hidden and cell previous state
     model.hiddenState, model.cellState = model.initHiddenCellState()
