@@ -2,9 +2,7 @@
 Multilayer perceptron to distinguish between head and dependent
 """
 
-import torch
 import torch.nn as nn
-from torch.autograd import Variable
 
 
 class MLP(nn.Module):

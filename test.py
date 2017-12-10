@@ -72,8 +72,9 @@ for i in range(len(sentencesInWords)):
 
     # Forward pass
     result = model(Variable(words_tensor), Variable(tags_tensor))
-    print(result)
-    break # just for now
+#    print(result)
+    
+    break # just for testing purposes. Remove when doing the actual training
 
 
 #writer = ConlluFileWriter('testFile.conllu')
