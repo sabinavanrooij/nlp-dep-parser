@@ -1,4 +1,5 @@
 from collections import Counter
+import numpy as np
 
 class Token:
     def __init__(self, index, word, POSTag, head, label):
@@ -9,7 +10,7 @@ class Token:
         self.label = label
     
     def __str__(self):        
-        return "Index: {0}, Word: {1}, POSTag: {2}, Head: {3}, Label: {4}".format(self.index, self.word, self.POSTag, self.head, self.label)
+        return "Index: {0}, Word: \"{1}\", POSTag: {2}, Head: {3}, Label: {4}".format(self.index, self.word, self.POSTag, self.head, self.label)
 
 class SentenceDependencies:
     def __init__(self):
@@ -19,9 +20,6 @@ class SentenceDependencies:
     
     def addToken(self, token):
         self.tokens[token.index] = token
-    
-    def getToken(self, index):
-        return self.tokens[index]
     
     def __str__(self):
         strList = []
@@ -41,8 +39,15 @@ class SentenceDependencies:
             self.sentenceInTags.append(v.POSTag)
         return self.sentenceInWords, self.sentenceInTags
             
-#    def getAdjacencyMatrix(self):
+    def getAdjacencyMatrix(self):
+        # Rows are heads, columns are dependents
+        mSize = len(self.tokens) + 1 # account for root
+        m = np.zeros((mSize, mSize))
         
+        for k,v in self.tokens.items():
+            m[v.head][v.index] = 1
+        
+        return m
     
 
 commentSymbol = '#'
@@ -79,7 +84,7 @@ class ConlluFileReader:
             if head == undefinedField:
                 head = -1
             else:
-                head = float(head)
+                head = int(head)
             
             sentenceDep.addToken(Token(index=index, word=items[1], POSTag=items[3], head=head, label=items[7]))
             wordCounts[items[1]] += 1            
