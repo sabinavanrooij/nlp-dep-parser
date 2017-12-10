@@ -59,25 +59,22 @@ for k,v in i2t.items():
 
 
 model = DependencyParseModel(word_embeddings_dim, posTags_embeddings_dim, vocabularySize, tagsUniqueCount, pretrainedWordEmbeddings, pretrainedTagEmbeddings)
-  
 
-assert len(sentencesInWords) == len(sentencesInTags)
-
-for i in range(len(sentencesInWords)):
-    assert len(sentencesInWords[i]) == len(sentencesInTags[i])
-    
+for s in sentencesDependencies:    
     # Clear hidden and cell previous state
     model.hiddenState, model.cellState = model.initHiddenCellState()
     
-    wordsToIndices = [w2i[w] for w in sentencesInWords[i]]
+    sentenceInWords, sentenceInTags = s.getSentenceInWordsAndInTags()
+    
+    wordsToIndices = [w2i[w] for w in sentenceInWords]
     words_tensor = torch.LongTensor(wordsToIndices)
     
-    tagsToIndices = [t2i[t] for t in sentencesInTags[i]]
+    tagsToIndices = [t2i[t] for t in sentenceInTags]
     tags_tensor = torch.LongTensor(tagsToIndices)
 
     # Forward pass
     result = model(Variable(words_tensor), Variable(tags_tensor))
-#    print(result) # result so far is scores matrix
+    print(result) # result so far is scores matrix
     
     break # just for testing purposes. Remove when doing the actual training
 
