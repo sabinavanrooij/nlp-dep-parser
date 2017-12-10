@@ -14,6 +14,8 @@ class Token:
 class SentenceDependencies:
     def __init__(self):
         self.tokens = {}
+        self.sentenceInWords = []
+        self.sentenceInTags = []
     
     def addToken(self, token):
         self.tokens[token.index] = token
@@ -27,6 +29,21 @@ class SentenceDependencies:
             strList.append(str(self.tokens[k]))
         return '\n'.join(strList)
     
+    def getSentenceInWordsAndInTags(self):
+        if len(self.sentenceInWords) > 0:
+            assert len(self.sentenceInTags) > 0
+            return self.sentenceInWords, self.sentenceInTags
+        
+        assert len(self.tokens) > 0
+        
+        for k,v in self.tokens.items():
+            self.sentenceInWords.append(v.word)
+            self.sentenceInTags.append(v.POSTag)
+        return self.sentenceInWords, self.sentenceInTags
+            
+#    def getAdjacencyMatrix(self):
+        
+    
 
 commentSymbol = '#'
 itemsSeparator = '\t'
@@ -35,9 +52,9 @@ undefinedField = '_'
 class ConlluFileReader:
     def __init__(self, filePath):
         self.filePath = filePath
-        self.wordCounts = Counter()
         
-    def readSentencesDependencies(self):
+    def readSentencesDependencies(self, unknownMarker):
+        wordCounts = Counter()
         f = open(self.filePath, 'r')
         sentencesDeps = []
         sentenceDep = SentenceDependencies()
@@ -65,9 +82,15 @@ class ConlluFileReader:
                 head = float(head)
             
             sentenceDep.addToken(Token(index=index, word=items[1], POSTag=items[3], head=head, label=items[7]))
-            self.wordCounts[items[1]] += 1            
+            wordCounts[items[1]] += 1            
         
         f.close()
+        
+        # Replace words with count = 1 with <unk>
+        for s in sentencesDeps:
+            for k,v in s.tokens.items():
+                if wordCounts[v.word] == 1:
+                    v.word = unknownMarker
         
         return sentencesDeps    
 
