@@ -11,8 +11,6 @@ from wordEmbeddingsReader import GloVeFileReader
 from gensim.models import Word2Vec
 import numpy as np
 from model import DependencyParseModel
-import torch
-from torch.autograd import Variable
 
 unknownMarker = '<unk>'
 
