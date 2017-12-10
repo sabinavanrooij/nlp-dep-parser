@@ -5,7 +5,7 @@ Spyder Editor
 This is a temporary script file.
 """
 
-# from sentenceDependencies import ConlluFileWriter
+from sentenceDependencies import ConlluFileReader#, ConlluFileWriter
 from dataProcessor import DataProcessor
 from wordEmbeddingsReader import GloVeFileReader
 from gensim.models import Word2Vec
@@ -14,7 +14,12 @@ from model import DependencyParseModel
 import torch
 from torch.autograd import Variable
 
-dataProcessor = DataProcessor(r"UD_English/en-ud-train.conllu")
+unknownMarker = '<unk>'
+
+sentencesReader = ConlluFileReader(r"UD_English/en-ud-train.conllu")
+sentencesDependencies = sentencesReader.readSentencesDependencies(unknownMarker)
+
+dataProcessor = DataProcessor(sentencesDependencies)
 w2i, t2i, l2i, i2w, i2t, i2l = dataProcessor.buildDictionaries()
 
 sentencesInWords, sentencesInTags = dataProcessor.getTrainingSetsForWord2Vec()
@@ -45,7 +50,7 @@ for k,v in i2w.items():
     elif v in wordsModel.wv.vocab:
         pretrainedWordEmbeddings[k] = wordsModel[v]
     else:
-        pretrainedWordEmbeddings[k] = wordsModel[dataProcessor.unknownMarker]
+        pretrainedWordEmbeddings[k] = wordsModel[unknownMarker]
 
 pretrainedTagEmbeddings = np.empty((tagsUniqueCount, posTags_embeddings_dim))
 for k,v in i2t.items():
@@ -72,7 +77,7 @@ for i in range(len(sentencesInWords)):
 
     # Forward pass
     result = model(Variable(words_tensor), Variable(tags_tensor))
-#    print(result)
+#    print(result) # result so far is scores matrix
     
     break # just for testing purposes. Remove when doing the actual training
 

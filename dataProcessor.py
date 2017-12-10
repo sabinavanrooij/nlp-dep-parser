@@ -6,25 +6,12 @@ Created on Tue Nov 28 14:28:08 2017
 @author: diana
 """
 
-from sentenceDependencies import ConlluFileReader
 from collections import defaultdict
 
 class DataProcessor:
     
-    def __init__(self, fileName):
-        # Read sentences dependencies from file
-        sentencesReader = ConlluFileReader(fileName)
-        self.sentencesDeps = sentencesReader.readSentencesDependencies()
-        self.unknownMarker = '<unk>'
-
-        # Replace words with count = 1 with <unk>
-        wordCounts = sentencesReader.wordCounts
-        for s in self.sentencesDeps:
-            for k,v in s.tokens.items():
-                if wordCounts[v.word] == 1:
-                    v.word = self.unknownMarker
-                    
-        print(self.sentencesDeps[0])
+    def __init__(self, sentencesDependencies):
+        self.sentencesDeps = sentencesDependencies
 
     def buildDictionaries(self):        
         w2i = defaultdict(lambda: len(w2i))
@@ -49,11 +36,7 @@ class DataProcessor:
         posTagsTrainingSet = []
         
         for s in self.sentencesDeps:
-            sentenceInWords = []
-            sentenceInTags = []
-            for k,v in s.tokens.items():
-                sentenceInWords.append(v.word)
-                sentenceInTags.append(v.POSTag)
+            sentenceInWords, sentenceInTags = s.getSentenceInWordsAndInTags()            
             wordsTrainingSet.append(sentenceInWords)
             posTagsTrainingSet.append(sentenceInTags)
             
