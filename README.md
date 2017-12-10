@@ -1,7 +1,7 @@
 # nlp-dep-parser
 NLP project on dependency parsers
 
-FINAL REPORT Template: https://www.overleaf.com/12707057qsjgmmyjnswh
+<b>FINAL REPORT Template</b>: https://www.overleaf.com/12707057qsjgmmyjnswh
 
 Milestone:
 
