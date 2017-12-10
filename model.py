@@ -69,12 +69,11 @@ class DependencyParseModel(nn.Module):
         assert len(wordsTensor) == len(tagsTensor)
         seq_len = len(wordsTensor)
         
-#        inputs = Variable(torch.randn(seq_len, batch, inputSize))
-        
         inputTensor = torch.cat((wordEmbeds, tagEmbeds), 1)
 #        print(inputTensor.size())
         
         hVector, (self.hiddenState, self.cellState) = self.biLstm(inputTensor.view(seq_len, self.batch, self.inputSize), (self.hiddenState, self.cellState))
+#        print(hVector)
         
         # MLP
         nWordsInSentence = wordEmbeds.size()[0]
@@ -98,4 +97,8 @@ class DependencyParseModel(nn.Module):
             scoreTensor[:, i] = scoreTensor[:, i] / sum(scoreTensor[:, i])
         
 #        print(scoreTensor)
+            
+            
+        
+            
         return scoreTensor
