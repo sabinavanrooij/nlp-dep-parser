@@ -105,13 +105,27 @@ class DependencyParseModel(nn.Module):
             scoreTensor[permutation[0], permutation[1]] = float(score.data[0].numpy()[0])
 
         # Normalize the columns
-        for i in range(nWordsInSentence):
-            scoreTensor[:, i] = scoreTensor[:, i] / sum(scoreTensor[:, i])
+        #for i in range(nWordsInSentence):
+         #   scoreTensor[:, i] = scoreTensor[:, i] / sum(scoreTensor[:, i])
         
         # Use Softmax to get a positive value between 0 and 1
         m = nn.Softmax()
         scoreTensor = m(scoreTensor)
         
+        refdata = sentenceDependencies.getAdjacencyMatrix()
+
+        for column in range(1,nWordsInSentence):
+            output = 0
+            loss = nn.CrossEntropyLoss()
+            input = scoreTensor[:,column]
+            print(input)
+            target = refdata[:,column] #REPLACE WITH: the same column in the reference data
+            print(target)
+            output += loss(input, target)
+        
+            output.backward()
+            #optimizer.step()
+                
 #        print(scoreTensor)
             
         # Do something with adjacency matrix
