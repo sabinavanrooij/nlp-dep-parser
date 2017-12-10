@@ -68,6 +68,19 @@ for s in sentencesDependencies:
     result = model(s, w2i, t2i)
 #    print(result) # result so far is scores matrix
     
+    
+    #    output = 0 
+#    for column in range(len(sentencesInWords[i])):
+#        loss = nn.CrossEntropyLoss()
+#        input = result[:,column]
+#        print(input)
+#        target = result[:,column] #REPLACE WITH: the same column in the reference data
+#        output += loss(input, target)
+#        
+#        output.backward()
+        #optimizer.step() 
+
+    
     break # just for testing purposes. Remove when doing the actual training
 
 

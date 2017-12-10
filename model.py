@@ -107,7 +107,12 @@ class DependencyParseModel(nn.Module):
         # Normalize the columns
         for i in range(nWordsInSentence):
             scoreTensor[:, i] = scoreTensor[:, i] / sum(scoreTensor[:, i])
-
+        
+        # Use Softmax to get a positive value between 0 and 1
+        m = nn.Softmax()
+        scoreTensor = m(scoreTensor)
+        
+#        print(scoreTensor)
             
         # Do something with adjacency matrix
         # sentenceDependencies.getAdjacencyMatrx()
