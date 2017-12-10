@@ -46,14 +46,18 @@ class DependencyParseModel(nn.Module):
         self.batch = 1 # this is per recommendation
         
         # Initial states
-        self.hiddenState, self.cellState = self.initHiddenCellState()
+        self.hiddenState, self.cellState = self.initHiddenCellState()        
+        
+        # Input size of the MLP is the size of the output from previous step concatenated with another of the same size
+        biLstmOutputSize = self.hiddenSize * self.nDirections
+        mlpInputSize = biLstmOutputSize * 2
+        self.mlp = MLP(mlpInputSize, hidden_size=mlpInputSize)
         
     def initHiddenCellState(self):
         hiddenState = Variable(torch.randn(self.nLayers * self.nDirections, self.batch, self.hiddenSize))
         cellState = Variable(torch.randn(self.nLayers * self.nDirections, self.batch, self.hiddenSize))
         
-        return hiddenState, cellState
-    
+        return hiddenState, cellState    
     
     def forward(self, wordsTensor, tagsTensor):
         wordEmbeds = self.word_embeddings(wordsTensor)
@@ -76,9 +80,7 @@ class DependencyParseModel(nn.Module):
         nWordsInSentence = wordEmbeds.size()[0]
 
         # Creation of dependency matrix. size: (length of sentence) x (length of sentence)
-        scoreTensor = torch.FloatTensor(nWordsInSentence, nWordsInSentence).zero_()
-    
-        mlp = MLP(hVector[0, :, :].size()[1] * 2, 400)
+        scoreTensor = torch.FloatTensor(nWordsInSentence, nWordsInSentence).zero_()        
     
         # All possible combinations between head and dependent for the given sentence
         permutations = list(itertools.permutations([x for x in range(nWordsInSentence)], 2))
@@ -86,7 +88,7 @@ class DependencyParseModel(nn.Module):
         # Concatenate the vector corresponding to the words for all permutations
         for permutation in permutations:
             hvectorConcat = torch.cat((hVector[permutation[0], :, :], hVector[permutation[1], :, :]), 1)
-            score = mlp(hvectorConcat)
+            score = self.mlp(hvectorConcat)
     
             # Fill dependency matrix
             scoreTensor[permutation[0], permutation[1]] = float(score.data[0].numpy()[0])
