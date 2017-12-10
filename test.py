@@ -63,17 +63,9 @@ model = DependencyParseModel(word_embeddings_dim, posTags_embeddings_dim, vocabu
 for s in sentencesDependencies:
     # Clear hidden and cell previous state
     model.hiddenState, model.cellState = model.initHiddenCellState()
-    
-    sentenceInWords, sentenceInTags = s.getSentenceInWordsAndInTags()
-    
-    wordsToIndices = [w2i[w] for w in sentenceInWords]
-    words_tensor = torch.LongTensor(wordsToIndices)
-    
-    tagsToIndices = [t2i[t] for t in sentenceInTags]
-    tags_tensor = torch.LongTensor(tagsToIndices)
 
     # Forward pass
-    result = model(Variable(words_tensor), Variable(tags_tensor))
+    result = model(s, w2i, t2i)
 #    print(result) # result so far is scores matrix
     
     break # just for testing purposes. Remove when doing the actual training
