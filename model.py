@@ -53,6 +53,10 @@ class DependencyParseModel(nn.Module):
         mlpInputSize = biLstmOutputSize * 2
         self.mlp = MLP(mlpInputSize, hidden_size=mlpInputSize)
         
+        # Add optimizer
+        self.parameters = filter(lambda p: p.requires_grad, self.parameters())
+        self.optimizer = torch.optim.SGD(self.parameters, lr=0.01)
+        
     def initHiddenCellState(self):
         hiddenState = Variable(torch.randn(self.nLayers * self.nDirections, self.batch, self.hiddenSize))
         cellState = Variable(torch.randn(self.nLayers * self.nDirections, self.batch, self.hiddenSize))
@@ -91,8 +95,8 @@ class DependencyParseModel(nn.Module):
         nWordsInSentence = wordEmbeds.size()[0]
 
         # Creation of dependency matrix. size: (length of sentence) x (length of sentence)
-        scoreTensor = torch.FloatTensor(nWordsInSentence, nWordsInSentence).zero_()        
-    
+        scoreTensor = torch.FloatTensor(nWordsInSentence, nWordsInSentence).zero_()
+        
         # All possible combinations between head and dependent for the given sentence
         permutations = list(itertools.permutations([x for x in range(nWordsInSentence)], 2))
     
@@ -111,20 +115,21 @@ class DependencyParseModel(nn.Module):
         # Use Softmax to get a positive value between 0 and 1
         m = nn.Softmax()
         scoreTensor = m(scoreTensor)
+        print(scoreTensor)
         
         refdata = sentenceDependencies.getAdjacencyMatrix()
-
-        for column in range(1,nWordsInSentence):
-            output = 0
+        refdata = torch.from_numpy(refdata)
+        output = 0
+        for column in range(nWordsInSentence):
             loss = nn.CrossEntropyLoss()
-            input = scoreTensor[:,column]
+            input = Variable(scoreTensor[:,column],requires_grad = True)
             print(input)
-            target = refdata[:,column] #REPLACE WITH: the same column in the reference data
+            target = Variable(refdata[:,column])
             print(target)
             output += loss(input, target)
         
-            output.backward()
-            #optimizer.step()
+        #output.backward()
+        #optimizer.step()
                 
 #        print(scoreTensor)
             
