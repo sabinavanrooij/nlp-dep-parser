@@ -112,22 +112,25 @@ class DependencyParseModel(nn.Module):
         #for i in range(nWordsInSentence):
          #   scoreTensor[:, i] = scoreTensor[:, i] / sum(scoreTensor[:, i])
         
+        # Make scoreTensor a variable so we can update weights
+        scoreTensor = Variable(scoreTensor,requires_grad=True)
+        
         # Use Softmax to get a positive value between 0 and 1
         m = nn.Softmax()
         scoreTensor = m(scoreTensor)
-        print(scoreTensor)
+        
         
         refdata = sentenceDependencies.getAdjacencyMatrix()
         refdata = torch.from_numpy(refdata)
         output = 0
-        for column in range(nWordsInSentence):
+        for column in range(1,nWordsInSentence):
             loss = nn.CrossEntropyLoss()
-            input = Variable(scoreTensor[:,column],requires_grad = True)
+            input = scoreTensor[:,column] #Variable(scoreTensor[:,column],requires_grad = True)
             print(input)
             target = Variable(refdata[:,column])
             print(target)
-            output += loss(input, target)
-        
+            output += loss(input,target)
+
         #output.backward()
         #optimizer.step()
                 
