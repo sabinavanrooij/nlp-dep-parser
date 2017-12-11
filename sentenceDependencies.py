@@ -44,6 +44,8 @@ class SentenceDependencies:
         mSize = len(self.tokens) + 1 # account for root
         m = np.zeros((mSize, mSize))
         
+        m[0][0] = 1 # Root goes to root
+        
         for k,v in self.tokens.items():
             m[v.head][v.index] = 1
         
