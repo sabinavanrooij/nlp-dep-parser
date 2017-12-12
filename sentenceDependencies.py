@@ -5,13 +5,18 @@ Created on Tue Dec 12 13:49:31 2017
 
 @author: diana
 """
-
 import numpy as np
 
 # creates an object from headsArr from MST and labelsArr from model (?)
-#def createSentenceDependencies(headsArr, labelsArr):
+def createSentenceDependencies(sentenceInWords, headsArr, labelsArr, i2l):
+    assert len(sentenceInWords) == headsArr.size == labelsArr.size, "Length mismatch: {0} words, {1} heads, {2} labels".format(len(sentenceInWords), headsArr.size, labelsArr.size)
     
-
+    sentenceDep = SentenceDependencies()
+    for i, w in enumerate(sentenceInWords):
+        sentenceDep.addToken(Token(index=i+1, word=w, POSTag='_', head=headsArr[i], label=i2l[labelsArr[i]]))
+        
+    return sentenceDep
+        
 class Token:
     def __init__(self, index, word, POSTag, head, label):
         self.index = index
@@ -50,23 +55,32 @@ class SentenceDependencies:
             self.sentenceInTags.append(v.POSTag)
         return self.sentenceInWords, self.sentenceInTags
             
-    def getAdjacencyMatrix(self):
-        # Rows are heads, columns are dependents
-        mSize = len(self.tokens) + 1 # account for root
-        m = np.zeros((mSize, mSize))
-        
-        m[0][0] = 1 # Root goes to root
-        
-        for k,v in self.tokens.items():
-            m[v.head][v.index] = 1
-        
-        return m
+#    def getAdjacencyMatrix(self):
+#        # Rows are heads, columns are dependents
+#        mSize = len(self.tokens) + 1 # account for root
+#        m = np.zeros((mSize, mSize))
+#        
+#        m[0][0] = 1 # Root goes to root
+#        
+#        for k,v in self.tokens.items():
+#            m[v.head][v.index] = 1
+#        
+#        return m
     
     def getHeadsForWords(self):
-        # list where value i is the head for word i
+        # numpy arr where value i is the head for word i
         sentenceLength = len(self.tokens)
         arr = np.zeros(sentenceLength + 1) # account for the root, first element is 0
         for k, v in self.tokens.items():
             arr[k] = v.head
+        
+        return arr
+    
+    def getLabelsForWords(self, l2i):
+        # numpy arr where value i is the label index for word i
+        sentenceLength = len(self.tokens)
+        arr = np.zeros(sentenceLength)
+        for k, v in self.tokens.items():
+            arr[k-1] = l2i[v.label]
         
         return arr
