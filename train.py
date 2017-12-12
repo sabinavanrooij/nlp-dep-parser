@@ -45,6 +45,7 @@ wordsModel = Word2Vec(sentencesInWords, size=word_embeddings_dim, window=5, min_
 # LSTM training prep
 vocabularySize = len(w2i)
 tagsUniqueCount = len(t2i)
+labelsUniqueCount = len(l2i)
 
 pretrainedWordEmbeddings = np.empty((vocabularySize, word_embeddings_dim))
 for k,v in i2w.items():
@@ -61,7 +62,7 @@ for k,v in i2t.items():
     pretrainedTagEmbeddings[k] = POSTagsModel[v]
 
 
-model = DependencyParseModel(word_embeddings_dim, posTags_embeddings_dim, vocabularySize, tagsUniqueCount, pretrainedWordEmbeddings, pretrainedTagEmbeddings)
+model = DependencyParseModel(word_embeddings_dim, posTags_embeddings_dim, vocabularySize, tagsUniqueCount, labelsUniqueCount, pretrainedWordEmbeddings, pretrainedTagEmbeddings)
 parameters = filter(lambda p: p.requires_grad, model.parameters())
 parameters = nn.ParameterList(list(parameters))
 optimizer = torch.optim.Adam(parameters, lr=0.01, weight_decay=1E-6)
@@ -85,29 +86,33 @@ for epoch in range(epochs):
         
         tagsToIndices = [t2i[t] for t in sentenceInTags]
         tags_tensor = torch.LongTensor(tagsToIndices)
-
-        headsIndices = s.getHeadsForWords()
+        
+        arcs_refdata = s.getHeadsForWords()
         
         # Forward pass
-        result = model(words_tensor, tags_tensor, headsIndices)
+        result = model(words_tensor, tags_tensor, arcs_refdata)
 
         # Get reference data (gold)
-        refdata = headsIndices # CHANGE THIS TO  USE IT CORRECTLY
-        refdata = torch.from_numpy(refdata)
-        refdata = refdata.long()
-        #print(refdata.type)
+        arcs_refdata = torch.from_numpy(arcs_refdata)
+        arcs_refdata = arcs_refdata.long()
 
         # also need to use the gold data for labels here:
-        # s.getLabelsForWords(l2i)
+        labels_refdata = s.getLabelsForWords(l2i)
+        labels_refdata = torch.from_numpy(labels_refdata)
+        labels_refdata = labels_refdata.long()
         
         #get sentence length
         sentence_length = len(s.tokens)
         
         # Calculate loss
         loss = nn.CrossEntropyLoss()
+        
         modelinput = result.transpose(0,1)
-        target = Variable(refdata)
-        output = loss(modelinput, target)
+        target = Variable(arcs_refdata)
+        loss_arcs = loss(modelinput, target)
+        
+        
+        
         
         print("this is the output ",output)
         output.backward()
