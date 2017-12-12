@@ -65,7 +65,7 @@ for k,v in i2t.items():
 model = DependencyParseModel(word_embeddings_dim, posTags_embeddings_dim, vocabularySize, tagsUniqueCount, labelsUniqueCount, pretrainedWordEmbeddings, pretrainedTagEmbeddings)
 parameters = filter(lambda p: p.requires_grad, model.parameters())
 parameters = nn.ParameterList(list(parameters))
-optimizer = torch.optim.Adam(parameters, lr=0.01, weight_decay=1E-6)
+optimizer = torch.optim.Adam(parameters, lr=0.01, weight_decay=1E-5)
 
 epochs = 1
 lossgraph = []
@@ -156,4 +156,5 @@ axes[0, 1].set_title('Loss per sentence')
 axes[1, 0].set_title('Loss arcs MLP')
 axes[1, 1].set_title('Loss label MLP')
 fig.subplots_adjust(hspace=0.5)
+fig.subplots_adjust(wspace=0.5)
 plt.savefig(imagename)
