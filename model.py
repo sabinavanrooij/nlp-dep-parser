@@ -103,7 +103,7 @@ class DependencyParseModel(nn.Module):
         
         # we don't need this anymore, delete after we're calling the new cross entropy loss method
         # Use Softmax to get a positive value between 0 and 1
-#        m = nn.Softmax()
-#        scoreTensor = m(scoreTensor)
+        #m = nn.Softmax()
+        #scoreTensor = m(scoreTensor)
         
         return scoreTensor

@@ -24,7 +24,7 @@ sentencesDependencies = sentencesReader.readSentencesDependencies(unknownMarker)
 
 dataProcessor = DataProcessor(sentencesDependencies)
 w2i, t2i, l2i, i2w, i2t, i2l = dataProcessor.buildDictionaries()
-
+print(len(l2i))
 sentencesInWords, sentencesInTags = dataProcessor.getTrainingSetsForWord2Vec()
 
 word_embeddings_dim = 50
@@ -72,7 +72,7 @@ counter = 0
 outputarray = []
 
 for epoch in range(epochs):
-    shuffle(sentencesDependencies)
+    #shuffle(sentencesDependencies)
     total_output = 0
     for s in sentencesDependencies:
         # Clear hidden and cell previous state
@@ -92,24 +92,24 @@ for epoch in range(epochs):
         result = model(words_tensor, tags_tensor, headsIndices)
 
         # Get reference data (gold)
-        refarcs =  headsIndices# CHANGE THIS TO  USE IT CORRECTLY. it used to be getAdjacencyMatrix
-        # also need to use the gold data for labels somewhere in here:
-        # s.getLabelsForWords(l2i)
-        refarcs = torch.from_numpy(refarcs)
-        refarcs = refarcs.float()
+        refdata = headsIndices # CHANGE THIS TO  USE IT CORRECTLY
+        refdata = torch.from_numpy(refdata)
+        refdata = refdata.long()
+        #print(refdata.type)
 
+        # also need to use the gold data for labels here:
+        # s.getLabelsForWords(l2i)
+        
         #get sentence length
         sentence_length = len(s.tokens)
-
+        
         # Calculate loss
-        # here output is the sum of the losses over the columns
-        output = 0
-        for column in range(0, sentence_length+1):
-            loss = nn.BCELoss()
-            modelinput = result[:, column]
-            target = Variable(refarcs[:, column])
-            output += loss(modelinput, target)
-#        print("this is the output ",output)
+        loss = nn.CrossEntropyLoss()
+        modelinput = result.transpose(0,1)
+        target = Variable(refdata)
+        output = loss(modelinput, target)
+        
+        print("this is the output ",output)
         output.backward()
         optimizer.step()
         counter += 1 
@@ -117,8 +117,8 @@ for epoch in range(epochs):
         outputarray.append(output.data[0])
         total_output += output.data[0]
         # just for testing purposes. Remove when doing the actual training
-        if counter == 1:
-            break
+        #if counter == 10:
+        break
         
     lossgraph.append(total_output)
 
