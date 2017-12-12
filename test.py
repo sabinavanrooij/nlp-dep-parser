@@ -87,7 +87,7 @@ for epoch in range(epochs):
         # Calculate loss
         # here output is the sum of the losses over the columns
         output = 0
-        for column in range(0, sentence_length):
+        for column in range(0, sentence_length+1):
             loss = nn.BCELoss()
             modelinput = result[:, column]
             target = Variable(refdata[:, column])
@@ -100,7 +100,7 @@ for epoch in range(epochs):
         outputarray.append(output.data[0])
 
         # just for testing purposes. Remove when doing the actual training
-        if counter == 100:
+        if counter == 500:
             break
         
     lossgraph.append(output.data[0])
