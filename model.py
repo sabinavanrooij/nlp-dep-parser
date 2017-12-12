@@ -115,9 +115,4 @@ class DependencyParseModel(nn.Module):
         m = nn.Softmax()
         scoreTensor = m(scoreTensor)
         
-        # Get reference data (gold)
-        refdata = sentenceDependencies.getAdjacencyMatrix()
-        refdata = torch.from_numpy(refdata)
-        refdata = refdata.float()
-        
-        return scoreTensor,refdata
+        return scoreTensor

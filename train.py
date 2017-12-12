@@ -79,8 +79,13 @@ for epoch in range(epochs):
         model.hiddenState, model.cellState = model.initHiddenCellState()
 
         # Forward pass
-        result, refdata = model(s, w2i, t2i)
+        result = model(s, w2i, t2i)
         # print(result) # result so far is scores matrix
+
+        # Get reference data (gold)
+        refdata = s.getAdjacencyMatrix()
+        refdata = torch.from_numpy(refdata)
+        refdata = refdata.float()
 
         #get sentence length
         sentence_length = len(s.tokens)
@@ -107,7 +112,7 @@ for epoch in range(epochs):
     lossgraph.append(total_output)
 
 print(outputarray)
-
+print(lossgraph)
 #date = str(time.strftime("%d_%m"))
 #savename = "DependencyParserModel_" + date + ".pkl"
 savename = "DependencyParserModel.pkl"
