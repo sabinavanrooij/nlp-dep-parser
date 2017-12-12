@@ -14,6 +14,7 @@ import numpy as np
 from model import DependencyParseModel
 import torch.nn as nn
 from torch.autograd import Variable
+from random import sample
 
 unknownMarker = '<unk>'
 
@@ -62,33 +63,39 @@ for k,v in i2t.items():
 model = DependencyParseModel(word_embeddings_dim, posTags_embeddings_dim, vocabularySize, tagsUniqueCount, pretrainedWordEmbeddings, pretrainedTagEmbeddings)
 parameters = filter(lambda p: p.requires_grad, model.parameters())
 optimizer = torch.optim.SGD(parameters, lr=0.01)
-    
-for s in sentencesDependencies:
-    # Clear hidden and cell previous state
-    model.hiddenState, model.cellState = model.initHiddenCellState()
 
-    # Forward pass
-    result,refdata = model(s, w2i, t2i)
-#    print(result) # result so far is scores matrix
-    
-    #get sentence length
-    sentence_length = len(s.tokens)
-    
-    # Calculate loss
-    output = 0 #here output is the sum of the losses over the columns
-    for column in range(0,sentence_length):
-        loss = nn.BCELoss()
-        input = result[:,column] 
-        target =  Variable(refdata[:,column])
-        output += loss(input,target)
-    
-    print(output)
-    output.backward()
-    optimizer.step()
-    #running_loss += output.data[0]
-    
-    break # just for testing purposes. Remove when doing the actual training
+epochs = 1
+lossgraph = []
+
+for epoch in range(epochs):
+    sentencesDependencies = sample(sentencesDependencies, len(sentencesDependencies))
+    for s in sentencesDependencies:
+        # Clear hidden and cell previous state
+        model.hiddenState, model.cellState = model.initHiddenCellState()
+
+        # Forward pass
+        result, refdata = model(s, w2i, t2i)
+        # print(result) # result so far is scores matrix
+
+        #get sentence length
+        sentence_length = len(s.tokens)
+
+        # Calculate loss
+        # here output is the sum of the losses over the columns
+        output = 0
+        for column in range(0, sentence_length):
+            loss = nn.BCELoss()
+            modelinput = result[:, column]
+            target = Variable(refdata[:, column])
+            output += loss(modelinput, target)
+        print(output)
+        output.backward()
+        optimizer.step()
+
+        # just for testing purposes. Remove when doing the actual training
+        break
+    lossgraph.append(output.data[0])
 
 
-#writer = ConlluFileWriter('testFile.conllu')
+        #writer = ConlluFileWriter('testFile.conllu')
 #writer.write(trainingSet)
