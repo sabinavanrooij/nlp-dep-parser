@@ -16,7 +16,7 @@ class ConlluFileReader:
     def __init__(self, filePath):
         self.filePath = filePath
         
-    def readSentencesDependencies(self, unknownMarker):
+    def readSentencesDependencies(self, unknownMarker=None):
         wordCounts = Counter()
         f = open(self.filePath, 'r')
         sentencesDeps = []
@@ -50,10 +50,11 @@ class ConlluFileReader:
         f.close()
         
         # Replace words with count = 1 with <unk>
-        for s in sentencesDeps:
-            for k,v in s.tokens.items():
-                if wordCounts[v.word] == 1:
-                    v.word = unknownMarker
+        if unknownMarker != None:
+            for s in sentencesDeps:
+                for k,v in s.tokens.items():
+                    if wordCounts[v.word] == 1:
+                        v.word = unknownMarker
         
         return sentencesDeps    
 
