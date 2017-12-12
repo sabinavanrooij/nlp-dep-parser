@@ -86,11 +86,12 @@ for epoch in range(epochs):
         tagsToIndices = [t2i[t] for t in sentenceInTags]
         tags_tensor = torch.LongTensor(tagsToIndices)
         
+        arcs_refdata = s.getHeadsForWords()
+        
         # Forward pass
-        result = model(words_tensor, tags_tensor, headsIndices)
+        result = model(words_tensor, tags_tensor, arcs_refdata)
 
         # Get reference data (gold)
-        arcs_refdata = s.getHeadsForWords() # CHANGE THIS TO  USE IT CORRECTLY
         arcs_refdata = torch.from_numpy(arcs_refdata)
         arcs_refdata = arcs_refdata.long()
 
