@@ -90,22 +90,27 @@ for epoch in range(epochs):
         result = model(words_tensor, tags_tensor)
 
         # Get reference data (gold)
-        refdata = s.getHeadsForWords() # CHANGE THIS TO  USE IT CORRECTLY
-        refdata = torch.from_numpy(refdata)
-        refdata = refdata.long()
-        #print(refdata.type)
+        arcs_refdata = s.getHeadsForWords() # CHANGE THIS TO  USE IT CORRECTLY
+        arcs_refdata = torch.from_numpy(arcs_refdata)
+        arcs_refdata = arcs_refdata.long()
 
         # also need to use the gold data for labels here:
-        # s.getLabelsForWords(l2i)
+        labels_refdata = s.getLabelsForWords(l2i)
+        labels_refdata = torch.from_numpy(labels_refdata)
+        labels_refdata = labels_refdata.long()
         
         #get sentence length
         sentence_length = len(s.tokens)
         
         # Calculate loss
         loss = nn.CrossEntropyLoss()
+        
         modelinput = result.transpose(0,1)
-        target = Variable(refdata)
-        output = loss(modelinput, target)
+        target = Variable(arcs_refdata)
+        loss_arcs = loss(modelinput, target)
+        
+        
+        
         
         print("this is the output ",output)
         output.backward()
