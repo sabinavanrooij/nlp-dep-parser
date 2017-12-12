@@ -11,8 +11,11 @@ import torch
 
 savename = "DependencyParserModel.pkl"
 
+word_embeddings_dim = 50
+posTags_embeddings_dim = 50
+
 # To use the network:
-finalmodel = DependencyParseModel(word_embeddings_dim, posTags_embeddings_dim, vocabularySize, tagsUniqueCount, pretrainedWordEmbeddings, pretrainedTagEmbeddings)
+finalmodel = DependencyParseModel(word_embeddings_dim, posTags_embeddings_dim, -1, -1)
 finalmodel.load_state_dict(torch.load(savename))
 
 
