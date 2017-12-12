@@ -15,9 +15,6 @@ import itertools
 def disableTrainingForEmbeddings(model, *embeddingLayers):
     for e in embeddingLayers:
         e.weight.requires_grad = False
-        # Is this necessary?
-#        parameters = filter(lambda p: p.requires_grad, model.parameters())
-#        model.optimizer = torch.optim.SGD(parameters, lr=0.01)
 
 class DependencyParseModel(nn.Module):
     def __init__(self, word_embeddings_dim, tag_embeddings_dim, vocabulary_size, tag_uniqueCount, pretrainedWordEmbeddings=None, pretrainedTagEmbeddings=None):
@@ -33,7 +30,7 @@ class DependencyParseModel(nn.Module):
             assert pretrainedTagEmbeddings.shape == (tag_uniqueCount, tag_embeddings_dim)
             self.tag_embeddings.weight.data.copy_(torch.from_numpy(pretrainedTagEmbeddings))
         
-        # Save computation type by not training already trained word vectors
+        # Save computation time by not training already trained word vectors
         disableTrainingForEmbeddings(self, self.word_embeddings, self.tag_embeddings)
         
         self.inputSize = word_embeddings_dim + tag_embeddings_dim # The number of expected features in the input x
