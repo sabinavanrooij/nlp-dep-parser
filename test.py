@@ -11,6 +11,8 @@ from wordEmbeddingsReader import GloVeFileReader
 from gensim.models import Word2Vec
 import numpy as np
 from model import DependencyParseModel
+import torch.nn as nn
+from torch.autograd import Variable
 
 unknownMarker = '<unk>'
 
@@ -57,6 +59,7 @@ for k,v in i2t.items():
 
 
 model = DependencyParseModel(word_embeddings_dim, posTags_embeddings_dim, vocabularySize, tagsUniqueCount, pretrainedWordEmbeddings, pretrainedTagEmbeddings)
+optimizer = torch.optim.SGD(model.parameters, lr=0.01)
 
 for s in sentencesDependencies:
     # Clear hidden and cell previous state
@@ -71,7 +74,7 @@ for s in sentencesDependencies:
     sentence_length = len(sentenceInWords)
        
     # Calculate loss
-    output = 0
+    output = 0 #here output is the sum of the losses over the columns
     for column in range(0,sentence_length):
         loss = nn.BCELoss()
         input = result[:,column] 
@@ -79,6 +82,8 @@ for s in sentencesDependencies:
         output += loss(input,target)
     
     output.backward()
+    optimizer.step()
+    #running_loss += output.data[0]
     
     break # just for testing purposes. Remove when doing the actual training
 

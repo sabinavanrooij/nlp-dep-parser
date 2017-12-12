@@ -55,7 +55,7 @@ class DependencyParseModel(nn.Module):
         
         # Add optimizer
         self.parameters = filter(lambda p: p.requires_grad, self.parameters())
-        self.optimizer = torch.optim.SGD(self.parameters, lr=0.01)
+        #self.optimizer = torch.optim.SGD(self.parameters, lr=0.01)
         
     def initHiddenCellState(self):
         hiddenState = Variable(torch.randn(self.nLayers * self.nDirections, self.batch, self.hiddenSize))
