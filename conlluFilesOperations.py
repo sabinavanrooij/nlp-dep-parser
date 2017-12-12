@@ -63,9 +63,7 @@ class ConlluFileWriter:
         self.filePath = filePath
     
     def getFormattedIndex(self, index):
-        if index.is_integer():
-            return str(int(index))
-        return str(index)
+        return '%d' % (index)
         
     def write(self, sentenceDependencies):
         f = open(self.filePath, 'w')
