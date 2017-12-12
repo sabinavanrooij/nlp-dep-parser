@@ -86,15 +86,17 @@ for epoch in range(epochs):
         tagsToIndices = [t2i[t] for t in sentenceInTags]
         tags_tensor = torch.LongTensor(tagsToIndices)
 
+        headsIndices = s.getHeadsForWords()
+        
         # Forward pass
-        result = model(words_tensor, tags_tensor)
+        result = model(words_tensor, tags_tensor, headsIndices)
 
         # Get reference data (gold)
-        refdata = s.getHeadsForWords() # CHANGE THIS TO  USE IT CORRECTLY
-        # also need to use the gold data for labels here:
+        refarcs =  headsIndices# CHANGE THIS TO  USE IT CORRECTLY. it used to be getAdjacencyMatrix
+        # also need to use the gold data for labels somewhere in here:
         # s.getLabelsForWords(l2i)
-        refdata = torch.from_numpy(refdata)
-        refdata = refdata.float()
+        refarcs = torch.from_numpy(refarcs)
+        refarcs = refarcs.float()
 
         #get sentence length
         sentence_length = len(s.tokens)
@@ -105,7 +107,7 @@ for epoch in range(epochs):
         for column in range(0, sentence_length+1):
             loss = nn.BCELoss()
             modelinput = result[:, column]
-            target = Variable(refdata[:, column])
+            target = Variable(refarcs[:, column])
             output += loss(modelinput, target)
 #        print("this is the output ",output)
         output.backward()
@@ -115,7 +117,7 @@ for epoch in range(epochs):
         outputarray.append(output.data[0])
         total_output += output.data[0]
         # just for testing purposes. Remove when doing the actual training
-        if counter == 10:
+        if counter == 1:
             break
         
     lossgraph.append(total_output)
