@@ -15,6 +15,7 @@ from model import DependencyParseModel
 import torch.nn as nn
 from torch.autograd import Variable
 from random import shuffle
+import time
 
 unknownMarker = '<unk>'
 
