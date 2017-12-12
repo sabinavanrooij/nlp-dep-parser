@@ -72,7 +72,7 @@ outputarray = []
 
 for epoch in range(epochs):
     shuffle(sentencesDependencies)
-    output = 0
+    total_output = 0
     for s in sentencesDependencies:
         # Clear hidden and cell previous state
         model.hiddenState, model.cellState = model.initHiddenCellState()
@@ -98,12 +98,12 @@ for epoch in range(epochs):
         counter += 1 
         #running_loss += output.data[0]
         outputarray.append(output.data[0])
-
+        total_output += output.data[0]
         # just for testing purposes. Remove when doing the actual training
-        if counter == 500:
+        if counter == 10:
             break
         
-    lossgraph.append(output.data[0])
+    lossgraph.append(total_output)
 
 print(outputarray)
 #writer = ConlluFileWriter('testFile.conllu')
