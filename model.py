@@ -17,7 +17,7 @@ def disableTrainingForEmbeddings(model, *embeddingLayers):
         e.weight.requires_grad = False
 
 class DependencyParseModel(nn.Module):
-    def __init__(self, word_embeddings_dim, tag_embeddings_dim, vocabulary_size, tag_uniqueCount, pretrainedWordEmbeddings=None, pretrainedTagEmbeddings=None):
+    def __init__(self, word_embeddings_dim, tag_embeddings_dim, vocabulary_size, tag_uniqueCount, label_uniqueCount, pretrainedWordEmbeddings=None, pretrainedTagEmbeddings=None):
         super().__init__()
         
         self.word_embeddings = nn.Embedding(vocabulary_size, word_embeddings_dim)
@@ -48,9 +48,11 @@ class DependencyParseModel(nn.Module):
         # Input size of the MLP for arcs scores is the size of the output from previous step concatenated with another of the same size
         biLstmOutputSize = self.hiddenSize * self.nDirections
         mlpForScoresInputSize = biLstmOutputSize * 2
-        self.mlpArcsScores = MLP(mlpForScoresInputSize, hidden_size=mlpForScoresInputSize)
-        
+        self.mlpArcsScores = MLP(mlpForScoresInputSize, mlpForScoresInputSize, 1)
+
         #### Initialize here the mlp for labels ####
+        self.label_uniqueCount = label_uniqueCount
+        self.mlpLabels = MLP(mlpForScoresInputSize, mlpForScoresInputSize, self.label_uniqueCount)
         
         
     def initHiddenCellState(self):
@@ -78,6 +80,9 @@ class DependencyParseModel(nn.Module):
 
         # Creation of dependency matrix. size: (length of sentence + 1)  x (length of sentence + 1)
         scoreTensor = torch.FloatTensor(nWordsInSentence + 1, nWordsInSentence + 1).zero_()
+
+        # Creation of matrix with label-probabilities. size: (length of sentence + 1) x (unique tag count)
+        labelTensor = torch.FloatTensor(nWordsInSentence + 1, self.label_uniqueCount).zero_()
         
         # All possible combinations between head and dependent for the given sentence
         permutations = list(itertools.permutations([x for x in range(nWordsInSentence)], 2))
@@ -89,21 +94,23 @@ class DependencyParseModel(nn.Module):
     
             # Fill dependency matrix
             scoreTensor[permutation[0] + 1, permutation[1] + 1] = float(score.data[0].numpy()[0])
-            
-        
-        # Make scoreTensor a variable so we can update weights
-        scoreTensor = nn.Parameter(scoreTensor, requires_grad=True)
-        
+
 
         # MLP for labels
         assert len(headsIndices) - 1 == hVector.size()[0]
-        for i, head in enumerate(headsIndices[1:]): # skip the first element since that one goes to root
-            hvectorConcatForLabels = torch.cat((hVector[i, :, :], hVector[head, :, :]), 1) #### this is the input for the mlp for labels fyi ####
-            print(hvectorConcatForLabels.size()) # This is 1 x 400
-        
+        # skip the first element since that one goes to root
+        for i, head in enumerate(headsIndices[1:]):
+            hvectorConcatForLabels = torch.cat((hVector[i, :, :], hVector[head, :, :]), 1)
+            score = self.mlpLabels(hvectorConcatForLabels)
+            labelTensor[i, :] = score.data[0]
+
+        # Make scoreTensor and labelTensor variables so we can update weights
+        scoreTensor = nn.Parameter(scoreTensor, requires_grad=True)
+        labelTensor = nn.Parameter(labelTensor, requires_grad=True)
+
         # we don't need this anymore, delete after we're calling the new cross entropy loss method
         # Use Softmax to get a positive value between 0 and 1
         #m = nn.Softmax()
         #scoreTensor = m(scoreTensor)
         
-        return scoreTensor
+        return scoreTensor, labelTensor
