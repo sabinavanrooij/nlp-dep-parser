@@ -16,6 +16,7 @@ import torch.nn as nn
 from torch.autograd import Variable
 from random import shuffle
 import time
+import matplotlib.pyplot as plt
 
 unknownMarker = '<unk>'
 
@@ -70,9 +71,11 @@ epochs = 1
 lossgraph = []
 counter = 0
 outputarray = []
+outputarrayarcs = []
+outputarraylabels = []
 
 for epoch in range(epochs):
-    #shuffle(sentencesDependencies)
+    shuffle(sentencesDependencies)
     total_output = 0
     for s in sentencesDependencies:
         # Clear hidden and cell previous state
@@ -118,15 +121,18 @@ for epoch in range(epochs):
         
         output = loss_arcs + loss_labels
         
-        print("this is the output ",output)
+        # print("this is the output ", output)
         output.backward()
         optimizer.step()
         counter += 1 
         #running_loss += output.data[0]
         outputarray.append(output.data[0])
+        outputarrayarcs.append(loss_arcs.data[0])
+        outputarraylabels.append(loss_labels.data[0])
+
         total_output += output.data[0]
         # just for testing purposes. Remove when doing the actual training
-        if counter == 10:
+        if counter == 100:
             break
         
     lossgraph.append(total_output)
@@ -136,10 +142,18 @@ print(lossgraph)
 
 date = str(time.strftime("%d_%m"))
 savename = "DependencyParserModel_" + date + ".pkl"
+imagename = "DependencyParserModel_" + date + ".jpg"
 
 torch.save(model.state_dict(), savename)
 
-
-
-
-
+fig, axes = plt.subplots(2,2)
+axes[0, 0].plot(lossgraph)
+axes[0, 1].plot(outputarray)
+axes[1, 0].plot(outputarrayarcs)
+axes[1, 1].plot(outputarraylabels)
+axes[0, 0].set_title('Loss per epoch')
+axes[0, 1].set_title('Loss per sentence')
+axes[1, 0].set_title('Loss arcs MLP')
+axes[1, 1].set_title('Loss label MLP')
+fig.subplots_adjust(hspace=0.5)
+plt.savefig(imagename)
