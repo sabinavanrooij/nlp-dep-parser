@@ -112,7 +112,7 @@ class DependencyParseModel(nn.Module):
         scoreTensor = nn.Parameter(scoreTensor, requires_grad=True)
         
         # Use Softmax to get a positive value between 0 and 1
-        m = nn.Softmax()
-        scoreTensor = m(scoreTensor)
+        #m = nn.Softmax()
+        #scoreTensor = m(scoreTensor)
         
         return scoreTensor

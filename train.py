@@ -24,7 +24,7 @@ sentencesDependencies = sentencesReader.readSentencesDependencies(unknownMarker)
 
 dataProcessor = DataProcessor(sentencesDependencies)
 w2i, t2i, l2i, i2w, i2t, i2l = dataProcessor.buildDictionaries()
-
+print(len(l2i))
 sentencesInWords, sentencesInTags = dataProcessor.getTrainingSetsForWord2Vec()
 
 word_embeddings_dim = 50
