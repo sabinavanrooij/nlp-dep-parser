@@ -65,7 +65,7 @@ for k,v in i2t.items():
 model = DependencyParseModel(word_embeddings_dim, posTags_embeddings_dim, vocabularySize, tagsUniqueCount, labelsUniqueCount, pretrainedWordEmbeddings, pretrainedTagEmbeddings)
 parameters = filter(lambda p: p.requires_grad, model.parameters())
 parameters = nn.ParameterList(list(parameters))
-optimizer = torch.optim.Adam(parameters, lr=0.01, weight_decay=1E-5)
+optimizer = torch.optim.Adam(parameters, lr=0.01, weight_decay=1E-6)
 
 epochs = 1
 lossgraph = []
@@ -144,7 +144,8 @@ date = str(time.strftime("%d_%m"))
 savename = "DependencyParserModel_" + date + ".pkl"
 imagename = "DependencyParserModel_" + date + ".jpg"
 
-torch.save(model.state_dict(), savename)
+#torch.save(model.state_dict(), savename)
+torch.save(model, savename)
 
 fig, axes = plt.subplots(2,2)
 axes[0, 0].plot(lossgraph)
