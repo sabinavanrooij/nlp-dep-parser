@@ -6,7 +6,7 @@ This is a temporary script file.
 """
 
 import torch
-from sentenceDependencies import ConlluFileReader #, ConlluFileWriter
+from conlluFilesOperations import ConlluFileReader
 from dataProcessor import DataProcessor
 from wordEmbeddingsReader import GloVeFileReader
 from gensim.models import Word2Vec
@@ -78,12 +78,21 @@ for epoch in range(epochs):
         # Clear hidden and cell previous state
         model.hiddenState, model.cellState = model.initHiddenCellState()
 
+        sentenceInWords, sentenceInTags = s.getSentenceInWordsAndInTags()
+    
+        wordsToIndices = [w2i[w] for w in sentenceInWords]
+        words_tensor = torch.LongTensor(wordsToIndices)
+        
+        tagsToIndices = [t2i[t] for t in sentenceInTags]
+        tags_tensor = torch.LongTensor(tagsToIndices)
+
         # Forward pass
-        result = model(s, w2i, t2i)
-        # print(result) # result so far is scores matrix
+        result = model(words_tensor, tags_tensor)
 
         # Get reference data (gold)
-        refdata = s.getAdjacencyMatrix()
+        refdata = s.getHeadsForWords() # CHANGE THIS TO  USE IT CORRECTLY
+        # also need to use the gold data for labels here:
+        # s.getLabelsForWords(l2i)
         refdata = torch.from_numpy(refdata)
         refdata = refdata.float()
 
@@ -98,7 +107,7 @@ for epoch in range(epochs):
             modelinput = result[:, column]
             target = Variable(refdata[:, column])
             output += loss(modelinput, target)
-        #print("this is the output ",output)
+#        print("this is the output ",output)
         output.backward()
         optimizer.step()
         counter += 1 
@@ -113,10 +122,13 @@ for epoch in range(epochs):
 
 print(outputarray)
 print(lossgraph)
-#date = str(time.strftime("%d_%m"))
-#savename = "DependencyParserModel_" + date + ".pkl"
-savename = "DependencyParserModel.pkl"
+
+date = str(time.strftime("%d_%m"))
+savename = "DependencyParserModel_" + date + ".pkl"
+
 torch.save(model.state_dict(), savename)
+
+
 
 
 

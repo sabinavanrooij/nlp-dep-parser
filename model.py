@@ -60,16 +60,7 @@ class DependencyParseModel(nn.Module):
         
         return hiddenState, cellState    
     
-    def forward(self, sentenceDependencies, w2i, t2i):
-        
-        sentenceInWords, sentenceInTags = sentenceDependencies.getSentenceInWordsAndInTags()
-    
-        wordsToIndices = [w2i[w] for w in sentenceInWords]
-        words_tensor = torch.LongTensor(wordsToIndices)
-        
-        tagsToIndices = [t2i[t] for t in sentenceInTags]
-        tags_tensor = torch.LongTensor(tagsToIndices)
-        
+    def forward(self, words_tensor, tags_tensor):        
         wordsTensor = Variable(words_tensor)
         tagsTensor = Variable(tags_tensor)
         
