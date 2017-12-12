@@ -15,7 +15,7 @@ from model import DependencyParseModel
 import torch.nn as nn
 from torch.autograd import Variable
 from random import shuffle
-#import time
+import time
 
 unknownMarker = '<unk>'
 
@@ -91,6 +91,8 @@ for epoch in range(epochs):
 
         # Get reference data (gold)
         refdata = s.getHeadsForWords() # CHANGE THIS TO  USE IT CORRECTLY
+        # also need to use the gold data for labels here:
+        # s.getLabelsForWords(l2i)
         refdata = torch.from_numpy(refdata)
         refdata = refdata.float()
 
@@ -120,9 +122,10 @@ for epoch in range(epochs):
 
 print(outputarray)
 print(lossgraph)
-#date = str(time.strftime("%d_%m"))
-#savename = "DependencyParserModel_" + date + ".pkl"
-savename = "DependencyParserModel.pkl"
+
+date = str(time.strftime("%d_%m"))
+savename = "DependencyParserModel_" + date + ".pkl"
+
 torch.save(model.state_dict(), savename)
 
 
