@@ -14,6 +14,7 @@ import numpy as np
 from model import DependencyParseModel
 import torch.nn as nn
 from torch.autograd import Variable
+from random import shuffle
 
 unknownMarker = '<unk>'
 
@@ -61,8 +62,13 @@ for k,v in i2t.items():
 
 model = DependencyParseModel(word_embeddings_dim, posTags_embeddings_dim, vocabularySize, tagsUniqueCount, pretrainedWordEmbeddings, pretrainedTagEmbeddings)
 parameters = filter(lambda p: p.requires_grad, model.parameters())
+parameters = nn.ParameterList(list(parameters))
 optimizer = torch.optim.SGD(parameters, lr=0.01)
-    
+outputarray = []
+
+counter = 0
+#shuffle(sentencesDependencies)
+
 for s in sentencesDependencies:
     # Clear hidden and cell previous state
     model.hiddenState, model.cellState = model.initHiddenCellState()
@@ -82,13 +88,16 @@ for s in sentencesDependencies:
         target =  Variable(refdata[:,column])
         output += loss(input,target)
     
-    print(output)
+    outputarray.append(output)
+    #print("this is the output ", output)
     output.backward()
     optimizer.step()
     #running_loss += output.data[0]
+    counter += 1 
     
+    #if counter ==100:
     break # just for testing purposes. Remove when doing the actual training
 
-
+#print(outputarray)
 #writer = ConlluFileWriter('testFile.conllu')
 #writer.write(trainingSet)

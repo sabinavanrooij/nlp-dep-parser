@@ -86,7 +86,6 @@ class DependencyParseModel(nn.Module):
 #        print(inputTensor.size())
         
         hVector, (self.hiddenState, self.cellState) = self.biLstm(inputTensor.view(seq_len, self.batch, self.inputSize), (self.hiddenState, self.cellState))
-#        print(hVector)
         
         # MLP
         nWordsInSentence = wordEmbeds.size()[0]
@@ -110,7 +109,7 @@ class DependencyParseModel(nn.Module):
          #   scoreTensor[:, i] = scoreTensor[:, i] / sum(scoreTensor[:, i])
         
         # Make scoreTensor a variable so we can update weights
-        scoreTensor = Variable(scoreTensor, requires_grad=True)
+        scoreTensor = nn.Parameter(scoreTensor, requires_grad=True)
         
         # Use Softmax to get a positive value between 0 and 1
         m = nn.Softmax()
