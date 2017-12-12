@@ -39,7 +39,14 @@ LSTM layer <i>Done</i>
 
 <b> TO DO: </b>
 
-- Implementation of MLP's in pytorch 
-(As output of the biLSTM we get the vectors (h1, h2, ... hn) for all the words in the sentence. For each combination of words (e.g. h1-h2, h2-h1, h2-h3, h3-h2, h1-h3, h3-h1 etc.) we concatenate  these two vectors (such that the dimension of the new vector is twice the dimension of the single vectors, in our case 200). This will be the input of our MLP. We train a MLP on these vectors to give us a score (integer). So that we get a score for each combination of words in the sentence. These scores will form the adjacency matrix, on which the MST algorithm will be called. 
+- Implementation of MLP2 in pytorch (label classification)
+
+- Change cross entropy functions 
+
+- Translation from MST to CoNLL file
+
+- Gold thingy for the labels
+
+
 
 - Handle multiple cycles in the MST algo
