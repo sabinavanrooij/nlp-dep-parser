@@ -64,7 +64,7 @@ for k,v in i2t.items():
 model = DependencyParseModel(word_embeddings_dim, posTags_embeddings_dim, vocabularySize, tagsUniqueCount, pretrainedWordEmbeddings, pretrainedTagEmbeddings)
 parameters = filter(lambda p: p.requires_grad, model.parameters())
 parameters = nn.ParameterList(list(parameters))
-optimizer = torch.optim.SGD(parameters, lr=0.01)
+optimizer = torch.optim.Adam(parameters, lr=0.01, weight_decay=1E-6)
 
 epochs = 1
 lossgraph = []
