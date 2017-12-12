@@ -54,7 +54,7 @@ class DependencyParseModel(nn.Module):
         self.mlp = MLP(mlpInputSize, hidden_size=mlpInputSize)
         
         # Add optimizer
-        self.parameters = filter(lambda p: p.requires_grad, self.parameters())
+        #self.parameters = filter(lambda p: p.requires_grad, self.parameters())
         #self.optimizer = torch.optim.SGD(self.parameters, lr=0.01)
         
     def initHiddenCellState(self):

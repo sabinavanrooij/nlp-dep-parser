@@ -60,8 +60,9 @@ for k,v in i2t.items():
 
 
 model = DependencyParseModel(word_embeddings_dim, posTags_embeddings_dim, vocabularySize, tagsUniqueCount, pretrainedWordEmbeddings, pretrainedTagEmbeddings)
-optimizer = torch.optim.SGD(model.parameters, lr=0.01)
-
+parameters = filter(lambda p: p.requires_grad, model.parameters())
+optimizer = torch.optim.SGD(parameters, lr=0.01)
+    
 for s in sentencesDependencies:
     # Clear hidden and cell previous state
     model.hiddenState, model.cellState = model.initHiddenCellState()
@@ -81,6 +82,7 @@ for s in sentencesDependencies:
         target =  Variable(refdata[:,column])
         output += loss(input,target)
     
+    print(output)
     output.backward()
     optimizer.step()
     #running_loss += output.data[0]
