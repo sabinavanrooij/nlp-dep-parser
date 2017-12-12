@@ -90,9 +90,9 @@ for epoch in range(epochs):
         arcs_refdata = s.getHeadsForWords()
         
         # Forward pass
-        result = model(words_tensor, tags_tensor, arcs_refdata)
+        scoreTensor, labelTensor = model(words_tensor, tags_tensor, arcs_refdata)
 
-        # Get reference data (gold)
+        # Get reference data (gold) for arcs
         arcs_refdata = torch.from_numpy(arcs_refdata)
         arcs_refdata = arcs_refdata.long()
 
@@ -107,12 +107,18 @@ for epoch in range(epochs):
         # Calculate loss
         loss = nn.CrossEntropyLoss()
         
-        modelinput = result.transpose(0,1)
-        target = Variable(arcs_refdata)
-        loss_arcs = loss(modelinput, target)
+        # For the arcs classification
+        modelinput_arcs = scoreTensor.transpose(0,1)
+        target_arcs = Variable(arcs_refdata)
+        loss_arcs = loss(modelinput_arcs, target_arcs)
         
+        #UNCOMMENT WHEN MLP IS DONE
+        # For the label classification
+#        modelinput_labels = labelTensor
+#        target_labels = Variable(labels_refdata)
+#        loss_labels = loss(modelinput_labels, target_labels)
         
-        
+        output = loss_arcs #+ loss_labels
         
         print("this is the output ",output)
         output.backward()
@@ -122,8 +128,8 @@ for epoch in range(epochs):
         outputarray.append(output.data[0])
         total_output += output.data[0]
         # just for testing purposes. Remove when doing the actual training
-        #if counter == 10:
-        break
+        if counter == 100:
+            break
         
     lossgraph.append(total_output)
 
