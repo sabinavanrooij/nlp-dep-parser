@@ -24,7 +24,6 @@ sentencesDependencies = sentencesReader.readSentencesDependencies(unknownMarker)
 
 dataProcessor = DataProcessor(sentencesDependencies)
 w2i, t2i, l2i, i2w, i2t, i2l = dataProcessor.buildDictionaries()
-print(len(l2i))
 sentencesInWords, sentencesInTags = dataProcessor.getTrainingSetsForWord2Vec()
 
 word_embeddings_dim = 50
@@ -112,13 +111,12 @@ for epoch in range(epochs):
         target_arcs = Variable(arcs_refdata)
         loss_arcs = loss(modelinput_arcs, target_arcs)
         
-        #UNCOMMENT WHEN MLP IS DONE
         # For the label classification
-#        modelinput_labels = labelTensor
-#        target_labels = Variable(labels_refdata)
-#        loss_labels = loss(modelinput_labels, target_labels)
+        modelinput_labels = labelTensor
+        target_labels = Variable(labels_refdata)
+        loss_labels = loss(modelinput_labels, target_labels)
         
-        output = loss_arcs #+ loss_labels
+        output = loss_arcs + loss_labels
         
         print("this is the output ",output)
         output.backward()
@@ -128,7 +126,7 @@ for epoch in range(epochs):
         outputarray.append(output.data[0])
         total_output += output.data[0]
         # just for testing purposes. Remove when doing the actual training
-        if counter == 100:
+        if counter == 10:
             break
         
     lossgraph.append(total_output)
