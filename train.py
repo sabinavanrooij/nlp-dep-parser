@@ -108,18 +108,10 @@ for epoch in range(epochs):
 
 print(outputarray)
 
-date = str(time.strftime("%d_%m"))
-savename = "DependencyParserModel_" + date + ".pkl"
+#date = str(time.strftime("%d_%m"))
+#savename = "DependencyParserModel_" + date + ".pkl"
+savename = "DependencyParserModel.pkl"
 torch.save(model.state_dict(), savename)
 
 
-# To use the network:
-finalmodel = DependencyParseModel(word_embeddings_dim, posTags_embeddings_dim, vocabularySize, tagsUniqueCount, pretrainedWordEmbeddings, pretrainedTagEmbeddings)
-finalmodel.load_state_dict(torch.load(savename))
 
-
-# the sentence you want to evaluate, NOTE: sentenceToEvaluate not defined yet!
-evaluation = finalmodel(sentenceToEvaluate)
-
-#writer = ConlluFileWriter('testFile.conllu')
-#writer.write(trainingSet)
