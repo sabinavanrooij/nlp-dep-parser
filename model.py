@@ -99,7 +99,7 @@ class DependencyParseModel(nn.Module):
         # MLP for labels
         assert len(headsIndices) - 1 == hVector.size()[0]
 
-        for i, head in enumerate(headsIndices):
+        for i, head in enumerate(headsIndices[1:]):
             # skip all elements that have root (0) as head since we don't have hVectors for root and thus nothing to concatenate
             if head == 0:
                 continue
