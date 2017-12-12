@@ -95,7 +95,7 @@ class DependencyParseModel(nn.Module):
         nWordsInSentence = wordEmbeds.size()[0]
 
         # Creation of dependency matrix. size: (length of sentence) x (length of sentence)
-        scoreTensor = torch.FloatTensor(nWordsInSentence, nWordsInSentence).zero_()
+        scoreTensor = torch.FloatTensor(nWordsInSentence+1, nWordsInSentence+1).zero_()
         
         # All possible combinations between head and dependent for the given sentence
         permutations = list(itertools.permutations([x for x in range(nWordsInSentence)], 2))
@@ -122,16 +122,20 @@ class DependencyParseModel(nn.Module):
         
         refdata = sentenceDependencies.getAdjacencyMatrix()
         refdata = torch.from_numpy(refdata)
+        refdata = refdata.float()
+        
         output = 0
         for column in range(1,nWordsInSentence):
-            loss = nn.CrossEntropyLoss()
-            input = scoreTensor[:,column] #Variable(scoreTensor[:,column],requires_grad = True)
-            print(input)
-            target = Variable(refdata[:,column])
-            print(target)
+            loss = nn.BCELoss()
+            input = scoreTensor[:,column] 
+            #print(input)
+            target =  Variable(refdata[:,column])
+            #print(target)
+            print(output)
             output += loss(input,target)
 
-        #output.backward()
+        print(output)
+        output.backward()
         #optimizer.step()
                 
 #        print(scoreTensor)
