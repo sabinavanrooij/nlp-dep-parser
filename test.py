@@ -106,5 +106,19 @@ for epoch in range(epochs):
     lossgraph.append(total_output)
 
 print(outputarray)
+
+date = str(time.strftime("%d_%m"))
+savename = "DependencyParserModel_" + date + ".pkl"
+torch.save(model.state_dict(), savename)
+
+
+# To use the network:
+finalmodel = DependencyParseModel(word_embeddings_dim, posTags_embeddings_dim, vocabularySize, tagsUniqueCount, pretrainedWordEmbeddings, pretrainedTagEmbeddings)
+finalmodel.load_state_dict(torch.load(savename))
+
+
+# the sentence you want to evaluate, NOTE: sentenceToEvaluate not defined yet!
+evaluation = finalmodel(sentenceToEvaluate)
+
 #writer = ConlluFileWriter('testFile.conllu')
 #writer.write(trainingSet)
