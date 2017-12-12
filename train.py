@@ -6,7 +6,7 @@ This is a temporary script file.
 """
 
 import torch
-from sentenceDependencies import ConlluFileReader #, ConlluFileWriter
+from conlluFilesOperations import ConlluFileReader
 from dataProcessor import DataProcessor
 from wordEmbeddingsReader import GloVeFileReader
 from gensim.models import Word2Vec
@@ -15,7 +15,7 @@ from model import DependencyParseModel
 import torch.nn as nn
 from torch.autograd import Variable
 from random import shuffle
-import time
+#import time
 
 unknownMarker = '<unk>'
 
@@ -105,7 +105,7 @@ for epoch in range(epochs):
             modelinput = result[:, column]
             target = Variable(refdata[:, column])
             output += loss(modelinput, target)
-        #print("this is the output ",output)
+#        print("this is the output ",output)
         output.backward()
         optimizer.step()
         counter += 1 
