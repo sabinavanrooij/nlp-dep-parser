@@ -39,18 +39,25 @@ class SentenceDependencies:
             self.sentenceInTags.append(v.POSTag)
         return self.sentenceInWords, self.sentenceInTags
             
-    def getAdjacencyMatrix(self):
-        # Rows are heads, columns are dependents
-        mSize = len(self.tokens) + 1 # account for root
-        m = np.zeros((mSize, mSize))
-        
-        m[0][0] = 1 # Root goes to root
-        
-        for k,v in self.tokens.items():
-            m[v.head][v.index] = 1
-        
-        return m
+#    def getAdjacencyMatrix(self):
+#        # Rows are heads, columns are dependents
+#        mSize = len(self.tokens) + 1 # account for root
+#        m = np.zeros((mSize, mSize))
+#        
+#        m[0][0] = 1 # Root goes to root
+#        
+#        for k,v in self.tokens.items():
+#            m[v.head][v.index] = 1
+#        
+#        return m
     
+    def getHeadsList(self):
+        # list where value i is the head for word i
+        headsList = [0] # account for the root
+        for k, v in self.tokens.items():
+            headsList.append(v.head)
+        
+        return headsList
 
 commentSymbol = '#'
 itemsSeparator = '\t'
