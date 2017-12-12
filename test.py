@@ -65,10 +65,10 @@ for s in sentencesDependencies:
     # Forward pass
     result,refdata = model(s, w2i, t2i)
 #    print(result) # result so far is scores matrix
-
     
     #get sentence length
-    sentence_length = ...
+    sentenceInWords, sentenceInTags = s.getSentenceInWordsAndInTags()
+    sentence_length = len(sentenceInWords)
        
     # Calculate loss
     output = 0
@@ -77,7 +77,7 @@ for s in sentencesDependencies:
         input = result[:,column] 
         target =  Variable(refdata[:,column])
         output += loss(input,target)
-
+    
     output.backward()
     
     break # just for testing purposes. Remove when doing the actual training
