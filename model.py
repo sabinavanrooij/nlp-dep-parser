@@ -91,7 +91,7 @@ class DependencyParseModel(nn.Module):
         # MLP
         nWordsInSentence = wordEmbeds.size()[0]
 
-        # Creation of dependency matrix. size: (length of sentence) x (length of sentence)
+        # Creation of dependency matrix. size: (length of sentence + 1)  x (length of sentence + 1)
         scoreTensor = torch.FloatTensor(nWordsInSentence + 1, nWordsInSentence + 1).zero_()
         
         # All possible combinations between head and dependent for the given sentence
@@ -105,7 +105,7 @@ class DependencyParseModel(nn.Module):
             # Fill dependency matrix
             scoreTensor[permutation[0] + 1, permutation[1] + 1] = float(score.data[0].numpy()[0])
 
-        # Normalize the columns
+        # Normalize the columns, redundant now because of the softmax, but lets leave it for now
         #for i in range(nWordsInSentence):
          #   scoreTensor[:, i] = scoreTensor[:, i] / sum(scoreTensor[:, i])
         
