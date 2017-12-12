@@ -98,9 +98,13 @@ class DependencyParseModel(nn.Module):
 
         # MLP for labels
         assert len(headsIndices) - 1 == hVector.size()[0]
-        # skip the first element since that one goes to root
-        for i, head in enumerate(headsIndices[1:]):
-            hvectorConcatForLabels = torch.cat((hVector[i, :, :], hVector[head, :, :]), 1)
+
+        for i, head in enumerate(headsIndices):
+            # skip all elements that have root (0) as head since we don't have hVectors for root and thus nothing to concatenate
+            if head == 0:
+                continue
+            
+            hvectorConcatForLabels = torch.cat((hVector[i, :, :], hVector[head - 1, :, :]), 1)
             score = self.mlpLabels(hvectorConcatForLabels)
             labelTensor[i, :] = score.data[0]
 

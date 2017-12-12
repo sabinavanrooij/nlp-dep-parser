@@ -32,7 +32,7 @@ class SentenceDependencies:
     def __init__(self):
         self.tokens = {}
         self.sentenceInWords = []
-        self.sentenceInTags = []
+        self.sentenceInTags = []        
     
     def addToken(self, token):
         self.tokens[token.index] = token
