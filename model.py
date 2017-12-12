@@ -97,8 +97,12 @@ class DependencyParseModel(nn.Module):
 
         # MLP for labels
         assert len(headsIndices) - 1 == hVector.size()[0]
-        for i, head in enumerate(headsIndices[1:]): # skip the first element since that one goes to root
-            hvectorConcatForLabels = torch.cat((hVector[i, :, :], hVector[head, :, :]), 1) #### this is the input for the mlp for labels fyi ####
+        for i, head in enumerate(headsIndices):
+            # skip all elements that have root (0) as head since we don't have hVectors for root and thus nothing to concatenate
+            if head == 0:
+                continue
+            
+            hvectorConcatForLabels = torch.cat((hVector[i, :, :], hVector[head - 1, :, :]), 1) #### this is the input for the mlp for labels fyi ####
             print(hvectorConcatForLabels.size()) # This is 1 x 400
         
         # we don't need this anymore, delete after we're calling the new cross entropy loss method
