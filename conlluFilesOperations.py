@@ -57,6 +57,30 @@ class ConlluFileReader:
         
         return sentencesDeps    
 
+    def readSentences(self):
+        f = open(self.filePath, 'r')
+        sentences = []
+        sentence = []
+        for line in f.readlines():
+            if line.startswith(commentSymbol):
+                continue
+            
+            if line.isspace(): # end of the sentence
+                sentences.append(sentence)
+                sentence = []
+                continue
+                
+            items = line.split(itemsSeparator)
+            
+            # this can be a float or a range if the word is implicit in the sentence
+            if not float(items[0]).is_integer():
+                continue
+            
+            sentence.append(items[1]) # word
+        
+        f.close() 
+        
+        return sentences
 
 class ConlluFileWriter:
     def __init__(self, filePath):
