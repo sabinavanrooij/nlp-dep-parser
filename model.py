@@ -119,29 +119,9 @@ class DependencyParseModel(nn.Module):
         m = nn.Softmax()
         scoreTensor = m(scoreTensor)
         
-        
+        #get reference data (gold)
         refdata = sentenceDependencies.getAdjacencyMatrix()
         refdata = torch.from_numpy(refdata)
         refdata = refdata.float()
         
-        output = 0
-        for column in range(1,nWordsInSentence):
-            loss = nn.BCELoss()
-            input = scoreTensor[:,column] 
-            #print(input)
-            target =  Variable(refdata[:,column])
-            #print(target)
-            print(output)
-            output += loss(input,target)
-
-        print(output)
-        output.backward()
-        #optimizer.step()
-                
-#        print(scoreTensor)
-            
-        # Do something with adjacency matrix
-        # sentenceDependencies.getAdjacencyMatrx()
-        
-            
-        return scoreTensor
+        return scoreTensor,refdata

@@ -5,7 +5,7 @@ Spyder Editor
 This is a temporary script file.
 """
 
-from sentenceDependencies import ConlluFileReader#, ConlluFileWriter
+from sentenceDependencies import ConlluFileReader,SentenceDependencies #, ConlluFileWriter
 from dataProcessor import DataProcessor
 from wordEmbeddingsReader import GloVeFileReader
 from gensim.models import Word2Vec
@@ -63,9 +63,22 @@ for s in sentencesDependencies:
     model.hiddenState, model.cellState = model.initHiddenCellState()
 
     # Forward pass
-    result = model(s, w2i, t2i)
+    result,refdata = model(s, w2i, t2i)
 #    print(result) # result so far is scores matrix
 
+    
+    #get sentence length
+    sentence_length = ...
+       
+    # Calculate loss
+    output = 0
+    for column in range(0,sentence_length):
+        loss = nn.BCELoss()
+        input = result[:,column] 
+        target =  Variable(refdata[:,column])
+        output += loss(input,target)
+
+    output.backward()
     
     break # just for testing purposes. Remove when doing the actual training
 
