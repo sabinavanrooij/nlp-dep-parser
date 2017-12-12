@@ -45,14 +45,13 @@ class DependencyParseModel(nn.Module):
         # Initial states
         self.hiddenState, self.cellState = self.initHiddenCellState()        
         
-        # Input size of the MLP is the size of the output from previous step concatenated with another of the same size
+        # Input size of the MLP for arcs scores is the size of the output from previous step concatenated with another of the same size
         biLstmOutputSize = self.hiddenSize * self.nDirections
-        mlpInputSize = biLstmOutputSize * 2
-        self.mlp = MLP(mlpInputSize, hidden_size=mlpInputSize)
+        mlpForScoresInputSize = biLstmOutputSize * 2
+        self.mlpArcsScores = MLP(mlpForScoresInputSize, hidden_size=mlpForScoresInputSize)
         
-        # Add optimizer
-        #self.parameters = filter(lambda p: p.requires_grad, self.parameters())
-        #self.optimizer = torch.optim.SGD(self.parameters, lr=0.01)
+        #### Initialize here the mlp for labels ####
+        
         
     def initHiddenCellState(self):
         hiddenState = Variable(torch.randn(self.nLayers * self.nDirections, self.batch, self.hiddenSize))
@@ -60,25 +59,21 @@ class DependencyParseModel(nn.Module):
         
         return hiddenState, cellState    
     
-    def forward(self, words_tensor, tags_tensor):        
+    def forward(self, words_tensor, tags_tensor, headsIndices):
+        # BiLSTM
         wordsTensor = Variable(words_tensor)
         tagsTensor = Variable(tags_tensor)
         
         wordEmbeds = self.word_embeddings(wordsTensor)
         tagEmbeds = self.tag_embeddings(tagsTensor)
         
-#        print(wordEmbeds.size()[0])
-#        print(tagEmbeds.size())
-        
         assert len(wordsTensor) == len(tagsTensor)
         seq_len = len(wordsTensor)
         
-        inputTensor = torch.cat((wordEmbeds, tagEmbeds), 1)
-#        print(inputTensor.size())
-        
+        inputTensor = torch.cat((wordEmbeds, tagEmbeds), 1)        
         hVector, (self.hiddenState, self.cellState) = self.biLstm(inputTensor.view(seq_len, self.batch, self.inputSize), (self.hiddenState, self.cellState))
         
-        # MLP
+        # MLP for arcs scores
         nWordsInSentence = wordEmbeds.size()[0]
 
         # Creation of dependency matrix. size: (length of sentence + 1)  x (length of sentence + 1)
@@ -89,19 +84,24 @@ class DependencyParseModel(nn.Module):
     
         # Concatenate the vector corresponding to the words for all permutations
         for permutation in permutations:
-            hvectorConcat = torch.cat((hVector[permutation[0], :, :], hVector[permutation[1], :, :]), 1)
-            score = self.mlp(hvectorConcat)
+            hvectorConcatForArcs = torch.cat((hVector[permutation[0], :, :], hVector[permutation[1], :, :]), 1)
+            score = self.mlpArcsScores(hvectorConcatForArcs)
     
             # Fill dependency matrix
             scoreTensor[permutation[0] + 1, permutation[1] + 1] = float(score.data[0].numpy()[0])
-
-        # Normalize the columns, redundant now because of the softmax, but lets leave it for now
-        #for i in range(nWordsInSentence):
-         #   scoreTensor[:, i] = scoreTensor[:, i] / sum(scoreTensor[:, i])
+            
         
         # Make scoreTensor a variable so we can update weights
         scoreTensor = nn.Parameter(scoreTensor, requires_grad=True)
         
+
+        # MLP for labels
+        assert len(headsIndices) - 1 == hVector.size()[0]
+        for i, head in enumerate(headsIndices[1:]): # skip the first element since that one goes to root
+            hvectorConcatForLabels = torch.cat((hVector[i, :, :], hVector[head, :, :]), 1) #### this is the input for the mlp for labels fyi ####
+            print(hvectorConcatForLabels.size()) # This is 1 x 400
+        
+        # we don't need this anymore, delete after we're calling the new cross entropy loss method
         # Use Softmax to get a positive value between 0 and 1
         #m = nn.Softmax()
         #scoreTensor = m(scoreTensor)
