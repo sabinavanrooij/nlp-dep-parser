@@ -92,19 +92,19 @@ for epoch in range(epochs):
             modelinput = result[:, column]
             target = Variable(refdata[:, column])
             output += loss(modelinput, target)
-        print(output)
+        #print("this is the output ",output)
         output.backward()
         optimizer.step()
         counter += 1 
         #running_loss += output.data[0]
-        outputarray.append(output)
+        outputarray.append(output.data[0])
 
         # just for testing purposes. Remove when doing the actual training
-        # if counter == 10:
-        break
+        if counter == 100:
+            break
         
     lossgraph.append(output.data[0])
 
-
+print(outputarray)
 #writer = ConlluFileWriter('testFile.conllu')
 #writer.write(trainingSet)
