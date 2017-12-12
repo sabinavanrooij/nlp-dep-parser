@@ -5,7 +5,8 @@ Spyder Editor
 This is a temporary script file.
 """
 
-from sentenceDependencies import ConlluFileReader,SentenceDependencies #, ConlluFileWriter
+import torch
+from sentenceDependencies import ConlluFileReader #, ConlluFileWriter
 from dataProcessor import DataProcessor
 from wordEmbeddingsReader import GloVeFileReader
 from gensim.models import Word2Vec
@@ -70,9 +71,8 @@ for s in sentencesDependencies:
 #    print(result) # result so far is scores matrix
     
     #get sentence length
-    sentenceInWords, sentenceInTags = s.getSentenceInWordsAndInTags()
-    sentence_length = len(sentenceInWords)
-       
+    sentence_length = len(s.tokens)
+    
     # Calculate loss
     output = 0 #here output is the sum of the losses over the columns
     for column in range(0,sentence_length):
