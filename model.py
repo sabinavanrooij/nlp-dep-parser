@@ -81,8 +81,8 @@ class DependencyParseModel(nn.Module):
         # Creation of dependency matrix. size: (length of sentence + 1)  x (length of sentence + 1)
         scoreTensor = torch.FloatTensor(nWordsInSentence + 1, nWordsInSentence + 1).zero_()
 
-        # Creation of matrix with label-probabilities. size: (length of sentence + 1) x (unique tag count)
-        labelTensor = torch.FloatTensor(nWordsInSentence + 1, self.label_uniqueCount).zero_()
+        # Creation of matrix with label-probabilities. size: (length of sentence) x (unique tag count)
+        labelTensor = torch.FloatTensor(nWordsInSentence, self.label_uniqueCount).zero_()
         
         # All possible combinations between head and dependent for the given sentence
         permutations = list(itertools.permutations([x for x in range(nWordsInSentence)], 2))
