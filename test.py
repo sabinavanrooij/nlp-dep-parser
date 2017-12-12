@@ -69,6 +69,7 @@ lossgraph = []
 
 for epoch in range(epochs):
     sentencesDependencies = sample(sentencesDependencies, len(sentencesDependencies))
+    output = 0
     for s in sentencesDependencies:
         # Clear hidden and cell previous state
         model.hiddenState, model.cellState = model.initHiddenCellState()
