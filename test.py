@@ -14,11 +14,7 @@ import numpy as np
 from model import DependencyParseModel
 import torch.nn as nn
 from torch.autograd import Variable
-<<<<<<< HEAD
 from random import shuffle
-=======
-from random import sample
->>>>>>> 3f16b38520560016da73e49cca0c8a5946077f52
 
 unknownMarker = '<unk>'
 
@@ -68,50 +64,14 @@ model = DependencyParseModel(word_embeddings_dim, posTags_embeddings_dim, vocabu
 parameters = filter(lambda p: p.requires_grad, model.parameters())
 parameters = nn.ParameterList(list(parameters))
 optimizer = torch.optim.SGD(parameters, lr=0.01)
-<<<<<<< HEAD
-outputarray = []
-
-counter = 0
-#shuffle(sentencesDependencies)
-
-for s in sentencesDependencies:
-    # Clear hidden and cell previous state
-    model.hiddenState, model.cellState = model.initHiddenCellState()
-
-    # Forward pass
-    result,refdata = model(s, w2i, t2i)
-#    print(result) # result so far is scores matrix
-    
-    #get sentence length
-    sentence_length = len(s.tokens)
-    
-    # Calculate loss
-    output = 0 #here output is the sum of the losses over the columns
-    for column in range(0,sentence_length):
-        loss = nn.BCELoss()
-        input = result[:,column] 
-        target =  Variable(refdata[:,column])
-        output += loss(input,target)
-    
-    outputarray.append(output)
-    #print("this is the output ", output)
-    output.backward()
-    optimizer.step()
-    #running_loss += output.data[0]
-    counter += 1 
-    
-    #if counter ==100:
-    break # just for testing purposes. Remove when doing the actual training
-
-#print(outputarray)
-#writer = ConlluFileWriter('testFile.conllu')
-=======
 
 epochs = 1
 lossgraph = []
+counter = 0
+outputarray = []
 
 for epoch in range(epochs):
-    sentencesDependencies = sample(sentencesDependencies, len(sentencesDependencies))
+    shuffle(sentencesDependencies)
     output = 0
     for s in sentencesDependencies:
         # Clear hidden and cell previous state
@@ -135,12 +95,16 @@ for epoch in range(epochs):
         print(output)
         output.backward()
         optimizer.step()
+        counter += 1 
+        #running_loss += output.data[0]
+        outputarray.append(output)
 
         # just for testing purposes. Remove when doing the actual training
+        # if counter == 10:
         break
+        
     lossgraph.append(output.data[0])
 
 
-        #writer = ConlluFileWriter('testFile.conllu')
->>>>>>> 3f16b38520560016da73e49cca0c8a5946077f52
+#writer = ConlluFileWriter('testFile.conllu')
 #writer.write(trainingSet)
