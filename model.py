@@ -95,7 +95,7 @@ class DependencyParseModel(nn.Module):
         nWordsInSentence = wordEmbeds.size()[0]
 
         # Creation of dependency matrix. size: (length of sentence) x (length of sentence)
-        scoreTensor = torch.FloatTensor(nWordsInSentence+1, nWordsInSentence+1).zero_()
+        scoreTensor = torch.FloatTensor(nWordsInSentence + 1, nWordsInSentence + 1).zero_()
         
         # All possible combinations between head and dependent for the given sentence
         permutations = list(itertools.permutations([x for x in range(nWordsInSentence)], 2))
@@ -106,20 +106,20 @@ class DependencyParseModel(nn.Module):
             score = self.mlp(hvectorConcat)
     
             # Fill dependency matrix
-            scoreTensor[permutation[0], permutation[1]] = float(score.data[0].numpy()[0])
+            scoreTensor[permutation[0] + 1, permutation[1] + 1] = float(score.data[0].numpy()[0])
 
         # Normalize the columns
         #for i in range(nWordsInSentence):
          #   scoreTensor[:, i] = scoreTensor[:, i] / sum(scoreTensor[:, i])
         
         # Make scoreTensor a variable so we can update weights
-        scoreTensor = Variable(scoreTensor,requires_grad=True)
+        scoreTensor = Variable(scoreTensor, requires_grad=True)
         
         # Use Softmax to get a positive value between 0 and 1
         m = nn.Softmax()
         scoreTensor = m(scoreTensor)
         
-        #get reference data (gold)
+        # Get reference data (gold)
         refdata = sentenceDependencies.getAdjacencyMatrix()
         refdata = torch.from_numpy(refdata)
         refdata = refdata.float()
