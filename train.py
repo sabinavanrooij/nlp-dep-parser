@@ -78,12 +78,19 @@ for epoch in range(epochs):
         # Clear hidden and cell previous state
         model.hiddenState, model.cellState = model.initHiddenCellState()
 
+        sentenceInWords, sentenceInTags = s.getSentenceInWordsAndInTags()
+    
+        wordsToIndices = [w2i[w] for w in sentenceInWords]
+        words_tensor = torch.LongTensor(wordsToIndices)
+        
+        tagsToIndices = [t2i[t] for t in sentenceInTags]
+        tags_tensor = torch.LongTensor(tagsToIndices)
+
         # Forward pass
-        result = model(s, w2i, t2i)
-        # print(result) # result so far is scores matrix
+        result = model(words_tensor, tags_tensor)
 
         # Get reference data (gold)
-        refdata = s.getAdjacencyMatrix()
+        refdata = s.getHeadsForWords() # CHANGE THIS TO  USE IT CORRECTLY
         refdata = torch.from_numpy(refdata)
         refdata = refdata.float()
 
@@ -117,6 +124,8 @@ print(lossgraph)
 #savename = "DependencyParserModel_" + date + ".pkl"
 savename = "DependencyParserModel.pkl"
 torch.save(model.state_dict(), savename)
+
+
 
 
 
