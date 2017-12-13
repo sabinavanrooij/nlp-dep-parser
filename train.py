@@ -17,6 +17,7 @@ from torch.autograd import Variable
 from random import shuffle
 import time
 import matplotlib.pyplot as plt
+import datetime
 
 unknownMarker = '<unk>'
 
@@ -67,12 +68,14 @@ parameters = filter(lambda p: p.requires_grad, model.parameters())
 parameters = nn.ParameterList(list(parameters))
 optimizer = torch.optim.Adam(parameters, lr=0.01, weight_decay=1E-6)
 
-epochs = 1
+epochs = 20
 lossgraph = []
 counter = 0
 outputarray = []
 outputarrayarcs = []
 outputarraylabels = []
+
+start = datetime.datetime.now()
 
 for epoch in range(epochs):
     shuffle(sentencesDependencies)
@@ -132,13 +135,15 @@ for epoch in range(epochs):
 
         total_output += output.data[0]
         # just for testing purposes. Remove when doing the actual training
-        if counter == 100:
-            break
+#        if counter == 100:
+#            break
         
     lossgraph.append(total_output)
 
 print(outputarray)
 print(lossgraph)
+
+print('Training time: {}'.format(datetime.datetime.now() - start))
 
 date = str(time.strftime("%d_%m"))
 savename = "DependencyParserModel_" + date + ".pkl"
