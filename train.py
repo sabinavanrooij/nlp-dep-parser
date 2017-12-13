@@ -52,7 +52,7 @@ sentencesInWords, sentencesInTags = dataProcessor.getTrainingSetsForWord2Vec()
 
 word_embeddings_dim = 50
 posTags_embeddings_dim = 50
-minCountWord2Vec_words = 5
+minCountWord2Vec_words = 1 if useDummyTrainData else 5
 minCountWord2Vec_tags = 0
 
 # Train the POS tags
