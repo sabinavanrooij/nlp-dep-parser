@@ -97,7 +97,6 @@ lossgraph = []
 outputarray = []
 outputarrayarcs = []
 outputarraylabels = []
-counter = 0
 
 start = datetime.datetime.now()
 
@@ -164,7 +163,6 @@ for epoch in range(epochs):
         outputarray.append(output.data[0])
         outputarrayarcs.append(loss_arcs.data[0])
         outputarraylabels.append(loss_labels.data[0])
-        counter += 1
         total_output += output.data[0]
 
         
