@@ -11,6 +11,7 @@ import torch.nn as nn
 from torch.autograd import Variable
 from MLP import MLP
 import itertools
+#import math
 
 def disableTrainingForEmbeddings(model, *embeddingLayers):
     for e in embeddingLayers:

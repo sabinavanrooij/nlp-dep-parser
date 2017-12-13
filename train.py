@@ -69,15 +69,17 @@ optimizer = torch.optim.Adam(parameters, lr=0.01, weight_decay=1E-6)
 
 epochs = 1
 lossgraph = []
-counter = 0
 outputarray = []
 outputarrayarcs = []
 outputarraylabels = []
-
+counter = 0
 for epoch in range(epochs):
     shuffle(sentencesDependencies)
     total_output = 0
     for s in sentencesDependencies:
+        # Zero the parameter gradients
+        optimizer.zero_grad()
+        
         # Clear hidden and cell previous state
         model.hiddenState, model.cellState = model.initHiddenCellState()
 
@@ -124,15 +126,15 @@ for epoch in range(epochs):
         # print("this is the output ", output)
         output.backward()
         optimizer.step()
-        counter += 1 
+        #counter += 1 
         #running_loss += output.data[0]
         outputarray.append(output.data[0])
         outputarrayarcs.append(loss_arcs.data[0])
         outputarraylabels.append(loss_labels.data[0])
-
+        counter += 1
         total_output += output.data[0]
         # just for testing purposes. Remove when doing the actual training
-        if counter == 100:
+        if counter == 1000:
             break
         
     lossgraph.append(total_output)
@@ -156,4 +158,5 @@ axes[0, 1].set_title('Loss per sentence')
 axes[1, 0].set_title('Loss arcs MLP')
 axes[1, 1].set_title('Loss label MLP')
 fig.subplots_adjust(hspace=0.5)
+fig.subplots_adjust(wspace=0.5)
 plt.savefig(imagename)
