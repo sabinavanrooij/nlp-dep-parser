@@ -7,13 +7,13 @@ Created on Tue Dec 12 13:49:31 2017
 """
 import numpy as np
 
-# creates an object from headsArr from MST and labelsArr from model (?)
-def createSentenceDependencies(sentenceInWords, headsArr, labelsArr, i2l):
-    assert len(sentenceInWords) == headsArr.size == labelsArr.size, "Length mismatch: {0} words, {1} heads, {2} labels".format(len(sentenceInWords), headsArr.size, labelsArr.size)
+# creates an object from headsArr from MST and labels list from model
+def createSentenceDependencies(sentenceInWords, sentenceInTags, headsArr, labels):
+    assert len(sentenceInWords) == headsArr.size == len(labels), "Length mismatch: {0} words, {1} heads, {2} labels".format(len(sentenceInWords), headsArr.size, len(labels))
     
     sentenceDep = SentenceDependencies()
     for i, w in enumerate(sentenceInWords):
-        sentenceDep.addToken(Token(index=i+1, word=w, POSTag='_', head=headsArr[i], label=i2l[labelsArr[i]]))
+        sentenceDep.addToken(Token(index=i+1, word=w, POSTag=sentenceInTags[i], head=headsArr[i], label=labels[i]))
         
     return sentenceDep
         

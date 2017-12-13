@@ -118,5 +118,5 @@ class ConlluFileWriter:
             lines.append("{0} text = {1}".format(commentSymbol, ' '.join(sentence)))
             lines.append("{0}\n".format('\n'.join(itemsLines)))
             
-        f.write('\n'.join(lines))
+        f.write('{}\n'.format('\n'.join(lines)))
         f.close()

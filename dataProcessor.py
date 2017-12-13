@@ -10,8 +10,9 @@ from collections import defaultdict
 
 class DataProcessor:
     
-    def __init__(self, sentencesDependencies):
+    def __init__(self, sentencesDependencies, unkownMarker):
         self.sentencesDeps = sentencesDependencies
+        self.unknownMarker = unkownMarker
 
     def buildDictionaries(self):        
         w2i = defaultdict(lambda: len(w2i))
