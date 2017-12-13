@@ -19,10 +19,34 @@ import time
 import matplotlib.pyplot as plt
 import datetime
 
+
+#### This is important. Remove when done double checking all the code
+
+useDummyTrainData = True
+
+####
+
 unknownMarker = '<unk>'
 
 sentencesReader = ConlluFileReader(r"UD_English/en-ud-train.conllu")
 sentencesDependencies = sentencesReader.readSentencesDependencies(unknownMarker)
+
+
+# Select 5 short sentences from the train file (of sentence length at most 10, say)
+if useDummyTrainData:
+    nSentencesToUse = 5
+    nSentencesSoFar = 0
+    newSentencesDependencies = []
+    i = 0
+    while(nSentencesSoFar < nSentencesToUse):
+        if(len(sentencesDependencies[i].tokens) <= 10):
+            newSentencesDependencies.append(i)
+            nSentencesSoFar += 1
+        i += 1
+        
+    sentencesDependencies = newSentencesDependencies        
+
+
 
 dataProcessor = DataProcessor(sentencesDependencies, unknownMarker)
 w2i, t2i, l2i, i2w, i2t, i2l = dataProcessor.buildDictionaries()
@@ -68,7 +92,7 @@ parameters = filter(lambda p: p.requires_grad, model.parameters())
 parameters = nn.ParameterList(list(parameters))
 optimizer = torch.optim.Adam(parameters, lr=0.01, weight_decay=1E-6)
 
-epochs = 1
+epochs = 1000 if useDummyTrainData else 1 # we want to do until convergence for dummy test set
 lossgraph = []
 outputarray = []
 outputarrayarcs = []
@@ -77,7 +101,7 @@ counter = 0
 
 start = datetime.datetime.now()
 
-for epoch in range(epochs):
+for epoch in range(epochs):        
     shuffle(sentencesDependencies)
     total_output = 0
     for s in sentencesDependencies:
@@ -127,16 +151,22 @@ for epoch in range(epochs):
         
         output = loss_arcs + loss_labels
         
-        # print("this is the output ", output)
+        if useDummyTrainData: # stop if converging            
+            if -1e-3 < output < 1e-3: # almost zero
+                print('Number of epochs till convergence: {}'.format(epoch))
+                break
+            if epoch % 100 == 0:
+                print('Epochs so far without convergence: {}'.format(epoch))
+                
         output.backward()
         optimizer.step()
-        counter += 1 
-        #running_loss += output.data[0]
+        
         outputarray.append(output.data[0])
         outputarrayarcs.append(loss_arcs.data[0])
         outputarraylabels.append(loss_labels.data[0])
         counter += 1
         total_output += output.data[0]
+
         
     lossgraph.append(total_output)
 

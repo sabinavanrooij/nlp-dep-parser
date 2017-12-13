@@ -40,7 +40,7 @@ for s in testSentences:
     scoreMatrix = model.predictArcs(words_tensor, tags_tensor)
     headsForWords = mst(scoreMatrix.numpy())
   
-    labelsMatrix = model.predictLabels(headsForWords) 
+    labelsMatrix = model.predictLabels(headsForWords)
     labelsForWords = np.argmax(labelsMatrix.numpy(), axis=1)
     
     sentencesDepsPredictions.append(createSentenceDependencies(sentenceInWords, sentenceInTags, headsForWords[1:], [i2l[l] for l in labelsForWords]))
