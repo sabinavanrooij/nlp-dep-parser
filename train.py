@@ -97,6 +97,7 @@ lossgraph = []
 outputarray = []
 outputarrayarcs = []
 outputarraylabels = []
+counter = 0
 
 start = datetime.datetime.now()
 
@@ -104,7 +105,7 @@ for epoch in range(epochs):
     shuffle(sentencesDependencies)
     total_output = 0
     for s in sentencesDependencies:
-        
+        # Zero the parameter gradients
         optimizer.zero_grad()
         
         # Clear hidden and cell previous state
@@ -163,9 +164,9 @@ for epoch in range(epochs):
         outputarray.append(output.data[0])
         outputarrayarcs.append(loss_arcs.data[0])
         outputarraylabels.append(loss_labels.data[0])
-
+        counter += 1
         total_output += output.data[0]
-        
+
         
     lossgraph.append(total_output)
 
