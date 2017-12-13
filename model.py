@@ -50,7 +50,7 @@ class DependencyParseModel(nn.Module):
         mlpForScoresInputSize = biLstmOutputSize * 2
         self.mlpArcsScores = MLP(mlpForScoresInputSize, mlpForScoresInputSize, 1)
 
-        #### Initialize here the mlp for labels ####
+        # MLP for labels
         self.label_uniqueCount = label_uniqueCount
         self.mlpLabels = MLP(mlpForScoresInputSize, mlpForScoresInputSize, self.label_uniqueCount)
         
@@ -62,6 +62,16 @@ class DependencyParseModel(nn.Module):
         return hiddenState, cellState    
     
     def forward(self, words_tensor, tags_tensor, headsIndices):
+        scoreTensor = self.predictArcs(words_tensor, tags_tensor)
+        labelTensor = self.predictLabels(headsIndices)        
+
+        # Make scoreTensor and labelTensor variables so we can update weights
+        scoreTensor = nn.Parameter(scoreTensor, requires_grad=True)
+        labelTensor = nn.Parameter(labelTensor, requires_grad=True)
+        
+        return scoreTensor, labelTensor
+
+    def predictArcs(self, words_tensor, tags_tensor):
         # BiLSTM
         wordsTensor = Variable(words_tensor)
         tagsTensor = Variable(tags_tensor)
@@ -73,7 +83,7 @@ class DependencyParseModel(nn.Module):
         seq_len = len(wordsTensor)
         
         inputTensor = torch.cat((wordEmbeds, tagEmbeds), 1)        
-        hVector, (self.hiddenState, self.cellState) = self.biLstm(inputTensor.view(seq_len, self.batch, self.inputSize), (self.hiddenState, self.cellState))
+        self.hVector, (self.hiddenState, self.cellState) = self.biLstm(inputTensor.view(seq_len, self.batch, self.inputSize), (self.hiddenState, self.cellState))
         
         # MLP for arcs scores
         nWordsInSentence = wordEmbeds.size()[0]
@@ -81,40 +91,37 @@ class DependencyParseModel(nn.Module):
         # Creation of dependency matrix. size: (length of sentence + 1)  x (length of sentence + 1)
         scoreTensor = torch.FloatTensor(nWordsInSentence + 1, nWordsInSentence + 1).zero_()
 
-        # Creation of matrix with label-probabilities. size: (length of sentence) x (unique tag count)
-        labelTensor = torch.FloatTensor(nWordsInSentence, self.label_uniqueCount).zero_()
-        
         # All possible combinations between head and dependent for the given sentence
         permutations = list(itertools.permutations([x for x in range(nWordsInSentence)], 2))
     
         # Concatenate the vector corresponding to the words for all permutations
         for permutation in permutations:
-            hvectorConcatForArcs = torch.cat((hVector[permutation[0], :, :], hVector[permutation[1], :, :]), 1)
+            hvectorConcatForArcs = torch.cat((self.hVector[permutation[0], :, :], self.hVector[permutation[1], :, :]), 1)
             score = self.mlpArcsScores(hvectorConcatForArcs)
     
             # Fill dependency matrix
             scoreTensor[permutation[0] + 1, permutation[1] + 1] = float(score.data[0].numpy()[0])
-
-
+        
+        return scoreTensor
+    
+    def predictLabels(self, headsIndices):
+        # headsIndices is nWordsInSentence + 1 because it's accounting for the root first position
+        
         # MLP for labels
-        assert len(headsIndices) - 1 == hVector.size()[0]
+        # Creation of matrix with label-probabilities. size: (length of sentence) x (unique tag count)
+        labelTensor = torch.FloatTensor(len(headsIndices) - 1, self.label_uniqueCount).zero_()
+        
+        # WE DONT REALLY FILL IN THE WHOLE THING> CHECK THIS!!
+        
+        assert len(headsIndices) - 1 == self.hVector.size()[0]
 
         for i, head in enumerate(headsIndices[1:]):
             # skip all elements that have root (0) as head since we don't have hVectors for root and thus nothing to concatenate
             if head == 0:
                 continue
             
-            hvectorConcatForLabels = torch.cat((hVector[i, :, :], hVector[head - 1, :, :]), 1)
+            hvectorConcatForLabels = torch.cat((self.hVector[i, :, :], self.hVector[head - 1, :, :]), 1)
             score = self.mlpLabels(hvectorConcatForLabels)
             labelTensor[i, :] = score.data[0]
-
-        # Make scoreTensor and labelTensor variables so we can update weights
-        scoreTensor = nn.Parameter(scoreTensor, requires_grad=True)
-        labelTensor = nn.Parameter(labelTensor, requires_grad=True)
-
-        # we don't need this anymore, delete after we're calling the new cross entropy loss method
-        # Use Softmax to get a positive value between 0 and 1
-        #m = nn.Softmax()
-        #scoreTensor = m(scoreTensor)
         
-        return scoreTensor, labelTensor
+        return labelTensor

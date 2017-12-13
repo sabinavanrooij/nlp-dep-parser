@@ -24,7 +24,7 @@ unknownMarker = '<unk>'
 sentencesReader = ConlluFileReader(r"UD_English/en-ud-train.conllu")
 sentencesDependencies = sentencesReader.readSentencesDependencies(unknownMarker)
 
-dataProcessor = DataProcessor(sentencesDependencies)
+dataProcessor = DataProcessor(sentencesDependencies, unknownMarker)
 w2i, t2i, l2i, i2w, i2t, i2l = dataProcessor.buildDictionaries()
 sentencesInWords, sentencesInTags = dataProcessor.getTrainingSetsForWord2Vec()
 
@@ -68,9 +68,9 @@ parameters = filter(lambda p: p.requires_grad, model.parameters())
 parameters = nn.ParameterList(list(parameters))
 optimizer = torch.optim.Adam(parameters, lr=0.01, weight_decay=1E-6)
 
-epochs = 20
+epochs = 1
 lossgraph = []
-counter = 0
+counter = 1
 outputarray = []
 outputarrayarcs = []
 outputarraylabels = []
@@ -81,6 +81,9 @@ for epoch in range(epochs):
     shuffle(sentencesDependencies)
     total_output = 0
     for s in sentencesDependencies:
+        
+        optimizer.zero_grad()
+        
         # Clear hidden and cell previous state
         model.hiddenState, model.cellState = model.initHiddenCellState()
 
@@ -135,8 +138,8 @@ for epoch in range(epochs):
 
         total_output += output.data[0]
         # just for testing purposes. Remove when doing the actual training
-#        if counter == 100:
-#            break
+        if counter == 100:
+            break
         
     lossgraph.append(total_output)
 
@@ -149,7 +152,6 @@ date = str(time.strftime("%d_%m"))
 savename = "DependencyParserModel_" + date + ".pkl"
 imagename = "DependencyParserModel_" + date + ".jpg"
 
-#torch.save(model.state_dict(), savename)
 torch.save(model, savename)
 
 fig, axes = plt.subplots(2,2)
