@@ -35,23 +35,23 @@ def mst(scores):
     roots = np.where(heads[tokens] == 0)[0] + 1
     
     # print initial heads
-    print("initial heads:", heads)
+#    print("initial heads:", heads)
     
     # deal with roots
     if len(roots) < 1:
-        print("no node is pointing to root, choosing one")
+#        print("no node is pointing to root, choosing one")
         root_scores = scores[tokens, 0]
         head_scores = scores[tokens, heads[tokens]]
         new_root = tokens[np.argmax(root_scores / head_scores)]
-        print("new root is:", new_root)
+#        print("new root is:", new_root)
         heads[new_root] = 0
     elif len(roots) > 1:
-        print("multiple nodes are pointing to root, choosing one")
+#        print("multiple nodes are pointing to root, choosing one")
         root_scores = scores[roots, 0]
         scores[roots, 0] = 0
         new_heads = np.argmax(scores[roots][:, tokens], axis=1) + 1
         new_root = roots[np.argmin(scores[roots, new_heads] / root_scores)]
-        print("new root is:", new_root)
+#        print("new root is:", new_root)
         heads[roots] = new_heads
         heads[new_root] = 0
 
@@ -64,12 +64,12 @@ def mst(scores):
         
     # identify cycles & contract
     for cycle in _find_cycle(vertices, edges):
-        print("Found cycle!", cycle)
+#        print("Found cycle!", cycle)
         dependents = set()
         to_visit = set(cycle)
         while len(to_visit) > 0:
             node = to_visit.pop()
-            print("Contraction, visiting node:", node)
+#            print("Contraction, visiting node:", node)
             if node not in dependents:
                 dependents.add(node)
                 to_visit.update(edges[node])
