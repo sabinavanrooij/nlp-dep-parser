@@ -17,6 +17,7 @@ from torch.autograd import Variable
 from random import shuffle
 import time
 import matplotlib.pyplot as plt
+import datetime
 
 unknownMarker = '<unk>'
 
@@ -67,12 +68,16 @@ parameters = filter(lambda p: p.requires_grad, model.parameters())
 parameters = nn.ParameterList(list(parameters))
 optimizer = torch.optim.Adam(parameters, lr=0.01, weight_decay=1E-6)
 
-epochs = 1
+epochs = 20
 lossgraph = []
 outputarray = []
 outputarrayarcs = []
 outputarraylabels = []
 counter = 0
+
+
+start = datetime.datetime.now()
+
 for epoch in range(epochs):
     shuffle(sentencesDependencies)
     total_output = 0
@@ -126,13 +131,14 @@ for epoch in range(epochs):
         # print("this is the output ", output)
         output.backward()
         optimizer.step()
-        #counter += 1 
+        counter += 1 
         #running_loss += output.data[0]
         outputarray.append(output.data[0])
         outputarrayarcs.append(loss_arcs.data[0])
         outputarraylabels.append(loss_labels.data[0])
         counter += 1
         total_output += output.data[0]
+        
         # just for testing purposes. Remove when doing the actual training
         if counter == 1000:
             break
@@ -142,11 +148,14 @@ for epoch in range(epochs):
 print(outputarray)
 print(lossgraph)
 
+print('Training time: {}'.format(datetime.datetime.now() - start))
+
 date = str(time.strftime("%d_%m"))
 savename = "DependencyParserModel_" + date + ".pkl"
 imagename = "DependencyParserModel_" + date + ".jpg"
 
-torch.save(model.state_dict(), savename)
+#torch.save(model.state_dict(), savename)
+torch.save(model, savename)
 
 fig, axes = plt.subplots(2,2)
 axes[0, 0].plot(lossgraph)
