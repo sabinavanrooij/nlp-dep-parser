@@ -75,6 +75,15 @@ class SentenceDependencies:
             arr[k] = v.head
         
         return arr
+        
+#    def getDependentsForWords(self):
+#        # numpy arr where value i is the head for word i
+#        sentenceLength = len(self.tokens)
+#        arr = np.zeros(sentenceLength + 1) # account for the root, first element is 0
+#        for k, v in self.tokens.items():
+#            arr[v.head] = k
+#        
+#        return arr
     
     def getLabelsForWords(self, l2i):
         # numpy arr where value i is the label index for word i

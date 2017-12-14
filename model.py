@@ -44,17 +44,19 @@ class DependencyParseModel(nn.Module):
         self.batch = 1 # this is per recommendation
         
         # Initial states
-        self.hiddenState, self.cellState = self.initHiddenCellState()        
+        self.hiddenState, self.cellState = self.initHiddenCellState()
         
         # Input size of the MLP for arcs scores is the size of the output from previous step concatenated with another of the same size
         biLstmOutputSize = self.hiddenSize * self.nDirections
         mlpForScoresInputSize = biLstmOutputSize * 2
-        self.mlpArcsScores = MLP(mlpForScoresInputSize, mlpForScoresInputSize, 1)
-
+        self.mlpArcsScores = MLP(mlpForScoresInputSize, hidden_size=mlpForScoresInputSize, output_size=1)
+        
         # MLP for labels
         self.label_uniqueCount = label_uniqueCount
-        self.mlpLabels = MLP(mlpForScoresInputSize, mlpForScoresInputSize, self.label_uniqueCount)
+        self.mlpLabels = MLP(mlpForScoresInputSize, hidden_size=mlpForScoresInputSize, output_size=self.label_uniqueCount)
         
+#        
+#        self.scoreTensor = Variable(torch.FloatTensor(1, 1).zero_(), requires_grad=True)
         
     def initHiddenCellState(self):
         hiddenState = Variable(torch.randn(self.nLayers * self.nDirections, self.batch, self.hiddenSize))
@@ -67,33 +69,39 @@ class DependencyParseModel(nn.Module):
         labelTensor = self.predictLabels(headsIndices)        
 
         # Make scoreTensor and labelTensor variables so we can update weights
-        scoreTensor = nn.Parameter(scoreTensor, requires_grad=True)
-        labelTensor = nn.Parameter(labelTensor, requires_grad=True)
+        scoreTensor = Variable(scoreTensor, requires_grad=True)
+#        labelTensor = nn.Parameter(labelTensor, requires_grad=True)
         
         return scoreTensor, labelTensor
 
-    def predictArcs(self, words_tensor, tags_tensor):
+    def predictArcs(self, words_tensor, tags_tensor):        
         # BiLSTM
-        wordsTensor = Variable(words_tensor)
-        tagsTensor = Variable(tags_tensor)
+#        wordsTensor = Variable(words_tensor)
+#        tagsTensor = Variable(tags_tensor)
         
-        wordEmbeds = self.word_embeddings(wordsTensor)
-        tagEmbeds = self.tag_embeddings(tagsTensor)
+        wordEmbeds = self.word_embeddings(words_tensor)
+        tagEmbeds = self.tag_embeddings(tags_tensor)
         
-        assert len(wordsTensor) == len(tagsTensor)
-        seq_len = len(wordsTensor)
+        assert len(tags_tensor) == len(tags_tensor)
+        seq_len = len(words_tensor)
         
-        inputTensor = torch.cat((wordEmbeds, tagEmbeds), 1)        
+        inputTensor = torch.cat((wordEmbeds, tagEmbeds), 1)
+        
         self.hVector, (self.hiddenState, self.cellState) = self.biLstm(inputTensor.view(seq_len, self.batch, self.inputSize), (self.hiddenState, self.cellState))
         
+#        self.hVector = nn.Parameter(self.hVector, requires_grad= True)
+        
         # MLP for arcs scores
-        nWordsInSentence = wordEmbeds.size()[0]
+        nWordsInSentence = len(words_tensor)
 
         # Creation of dependency matrix. size: (length of sentence + 1)  x (length of sentence + 1)
         scoreTensor = torch.FloatTensor(nWordsInSentence + 1, nWordsInSentence + 1).zero_()
 
         # All possible combinations between head and dependent for the given sentence
         permutations = list(itertools.permutations([x for x in range(nWordsInSentence)], 2))
+    
+        # We know root goes to root, so adding a 1 there
+        scoreTensor[0][0] = 1
     
         # Concatenate the vector corresponding to the words for all permutations
         for permutation in permutations:

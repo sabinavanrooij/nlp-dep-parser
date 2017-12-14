@@ -8,7 +8,7 @@ import torch.nn as nn
 class MLP(nn.Module):
 
     def __init__(self, input_size, hidden_size, output_size):
-        super(MLP, self).__init__()
+        super().__init__()
         # First linear layer Wx + b with
         # input dim 2 and output dim hidden_size
         self.i2h = nn.Linear(input_size, hidden_size)
