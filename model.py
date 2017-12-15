@@ -48,8 +48,8 @@ class DependencyParseModel(nn.Module):
         self.mlpArcsScores = MLP(mlpForScoresInputSize, hidden_size=mlpForScoresInputSize, output_size=1)
         
         # MLP for labels
-#        self.label_uniqueCount = label_uniqueCount
-#        self.mlpLabels = MLP(mlpForScoresInputSize, hidden_size=mlpForScoresInputSize, output_size=self.label_uniqueCount)
+        self.label_uniqueCount = label_uniqueCount
+        self.mlpLabels = MLP(mlpForScoresInputSize, hidden_size=mlpForScoresInputSize, output_size=self.label_uniqueCount)
         
     def initHiddenCellState(self):
         hiddenState = Variable(torch.randn(self.nLayers * self.nDirections, self.batch, self.hiddenSize), requires_grad=False)
@@ -58,6 +58,21 @@ class DependencyParseModel(nn.Module):
         return hiddenState, cellState    
     
     def forward(self, words_tensor, tags_tensor, arcs_refdata_tensor):
+
+        scoreTensor = self.predictArcs(words_tensor, tags_tensor)
+        labelTensor = self.predictLabels(arcs_refdata_tensor)        
+
+#        hvectorConcatForArcs = torch.cat((self.hVector[0, :, :], self.hVector[1, :, :]), 1)
+#        
+#        for i in range(nWordsInSentence + 1):
+#            for j in range(nWordsInSentence + 1):             
+#                scoreTensor[i,j] = self.mlpArcsScores(hvectorConcatForArcs).data[0,0]
+
+        return scoreTensor,labelTensor
+#        return scoreTensor, labelTensor
+
+    def predictArcs(self, words_tensor, tags_tensor):        
+                
         # BiLSTM        
         wordEmbeds = self.word_embeddings(words_tensor)
         tagEmbeds = self.tag_embeddings(tags_tensor)
@@ -70,11 +85,11 @@ class DependencyParseModel(nn.Module):
         self.hVector, (self.hiddenState, self.cellState) = self.biLstm(inputTensor.view(seq_len, self.batch, self.inputSize), (self.hiddenState, self.cellState))
         
         # MLP for arcs scores
-        nWordsInSentence = len(words_tensor)
+        nWordsInSentence = words_tensor.size()[0]
 
         # Creation of dependency matrix. size: (length of sentence + 1)  x (length of sentence + 1)
-#        scoreTensor = Variable(torch.FloatTensor(nWordsInSentence + 1, nWordsInSentence + 1).zero_())
         scoreTensor = Variable(torch.zeros(nWordsInSentence + 1, nWordsInSentence + 1))
+        
         # We know root goes to root, so adding a 1 there
         scoreTensor[0,0] = 1.0
 
@@ -87,62 +102,11 @@ class DependencyParseModel(nn.Module):
                 hvectorConcatForArcs = torch.cat((self.hVector[head, :, :], self.hVector[dep, :, :]), 1)
                 scoreVar = self.mlpArcsScores(hvectorConcatForArcs)
                 scoreTensor[head + 1, dep + 1] = scoreVar
-#                scoreTensor[head + 1][dep + 1] = scoreVar.data[0][0]
                 
                 hvectorConcatForArcs = torch.cat((self.hVector[dep, :, :], self.hVector[head, :, :]), 1)
                 scoreVar = self.mlpArcsScores(hvectorConcatForArcs)
-#                scoreTensor[dep + 1][head + 1] = scoreVar.data[0][0]
                 scoreTensor[dep + 1, head + 1] = scoreVar
-        
-#        scoreTensor = self.predictArcs(words_tensor, tags_tensor)
-#        labelTensor = self.predictLabels(arcs_refdata_tensor)        
-
-#        hvectorConcatForArcs = torch.cat((self.hVector[0, :, :], self.hVector[1, :, :]), 1)
-#        
-#        for i in range(nWordsInSentence + 1):
-#            for j in range(nWordsInSentence + 1):             
-#                scoreTensor[i,j] = self.mlpArcsScores(hvectorConcatForArcs).data[0,0]
-
-        return scoreTensor
-#        return scoreTensor, labelTensor
-
-    def predictArcs(self, words_tensor, tags_tensor):        
-        # BiLSTM
-#        wordsTensor = Variable(words_tensor)
-#        tagsTensor = Variable(tags_tensor)
-        
-        wordEmbeds = self.word_embeddings(words_tensor)
-        tagEmbeds = self.tag_embeddings(tags_tensor)
-        
-        assert len(tags_tensor) == len(tags_tensor)
-        seq_len = len(words_tensor)
-        
-        inputTensor = torch.cat((wordEmbeds, tagEmbeds), 1)
-        
-        self.hVector, (self.hiddenState, self.cellState) = self.biLstm(inputTensor.view(seq_len, self.batch, self.inputSize), (self.hiddenState, self.cellState))
                 
-        # MLP for arcs scores
-        nWordsInSentence = len(words_tensor)
-
-        # Creation of dependency matrix. size: (length of sentence + 1)  x (length of sentence + 1)
-        scoreTensor = torch.FloatTensor(nWordsInSentence + 1, nWordsInSentence + 1).zero_()
-
-        # All possible combinations between head and dependent for the given sentence
-        permutations = list(itertools.permutations([x for x in range(nWordsInSentence)], 2))
-    
-        # We know root goes to root, so adding a 1 there
-        scoreTensor[0][0] = 1
-    
-        # Concatenate the vector corresponding to the words for all permutations
-        for permutation in permutations:
-            hvectorConcatForArcs = torch.cat((self.hVector[permutation[0], :, :], self.hVector[permutation[1], :, :]), 1)
-            print(type(hvectorConcatForArcs))
-            print(hvectorConcatForArcs.size())
-            score = self.mlpArcsScores(hvectorConcatForArcs)
-    
-            # Fill dependency matrix
-            scoreTensor[permutation[0] + 1, permutation[1] + 1] = float(score.data[0].numpy()[0])
-        
         return scoreTensor
     
     def predictLabels(self, arcs_refdata_tensor):
@@ -150,7 +114,7 @@ class DependencyParseModel(nn.Module):
         
         # MLP for labels
         # Creation of matrix with label-probabilities. size: (length of sentence) x (unique tag count)
-        labelTensor = torch.FloatTensor(len(arcs_refdata_tensor) - 1, self.label_uniqueCount).zero_()
+        labelTensor = Variable(torch.zeros(len(arcs_refdata_tensor) - 1, self.label_uniqueCount))
         
         # WE DONT REALLY FILL IN THE WHOLE THING> CHECK THIS!!
         
@@ -163,6 +127,6 @@ class DependencyParseModel(nn.Module):
             
             hvectorConcatForLabels = torch.cat((self.hVector[i, :, :], self.hVector[head - 1, :, :]), 1)
             score = self.mlpLabels(hvectorConcatForLabels)
-            labelTensor[i, :] = score.data[0]
+            labelTensor[i, :] = score
         
         return labelTensor
