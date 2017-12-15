@@ -21,7 +21,7 @@ import datetime
 
 #### This is important. Remove when done double checking all the code
 
-#useDummyTrainData = True
+useDummyTrainData = True
 
 ####
 
@@ -32,22 +32,22 @@ sentencesDependencies = sentencesReader.readSentencesDependencies(unknownMarker)
 
 
 # Select 5 short sentences from the train file (of sentence length at most 10, say)
-#if useDummyTrainData:
-#    nSentencesToUse = 5
-#    nSentencesSoFar = 0
-#    newSentencesDependencies = []
-#    i = 0
-#    while(nSentencesSoFar < nSentencesToUse):
-#        if(len(sentencesDependencies[i].tokens) <= 10):
-#            newSentencesDependencies.append(sentencesDependencies[i])
-#            nSentencesSoFar += 1
-#        i += 1
-#    
-#    sentencesDependencies = newSentencesDependencies
-#    sentencesDependencies.reverse()
-#    temp = sentencesDependencies[0]
-#    sentencesDependencies[0] = sentencesDependencies[1]
-#    sentencesDependencies[1] = temp
+if useDummyTrainData:
+    nSentencesToUse = 5
+    nSentencesSoFar = 0
+    newSentencesDependencies = []
+    i = 0
+    while(nSentencesSoFar < nSentencesToUse):
+        if(len(sentencesDependencies[i].tokens) <= 10):
+            newSentencesDependencies.append(sentencesDependencies[i])
+            nSentencesSoFar += 1
+        i += 1
+    
+    sentencesDependencies = newSentencesDependencies
+    sentencesDependencies.reverse()
+    temp = sentencesDependencies[0]
+    sentencesDependencies[0] = sentencesDependencies[1]
+    sentencesDependencies[1] = temp
     
 
 dataProcessor = DataProcessor(sentencesDependencies, unknownMarker)
@@ -56,7 +56,7 @@ sentencesInWords, sentencesInTags = dataProcessor.getTrainingSetsForWord2Vec()
 
 word_embeddings_dim = 50
 posTags_embeddings_dim = 50
-minCountWord2Vec_words = 5
+minCountWord2Vec_words = 1 #5
 minCountWord2Vec_tags = 0
 
 # Train the POS tags
@@ -170,7 +170,7 @@ for epoch in range(epochs):
                     
         output.backward()
         optimizer.step()
-              
+        print(output)
                 
         # Then during training, for each epoch step and for each i you do:
         m = nn.Softmax()
@@ -184,6 +184,9 @@ for epoch in range(epochs):
         
         break
 print("last loss", output)
+
+for param in model.parameters():
+    print(param.grad)
 
 
 #print('Training time: {}'.format(datetime.datetime.now() - start))
