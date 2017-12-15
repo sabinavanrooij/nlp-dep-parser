@@ -18,7 +18,6 @@ from random import shuffle
 import time
 import matplotlib.pyplot as plt
 import datetime
-import matplotlib.pyplot as plt
 
 #### This is important. Remove when done double checking all the code
 
@@ -91,27 +90,32 @@ for k,v in i2t.items():
 
 model = DependencyParseModel(word_embeddings_dim, posTags_embeddings_dim, vocabularySize, tagsUniqueCount, labelsUniqueCount, pretrainedWordEmbeddings, pretrainedTagEmbeddings)
 parameters = filter(lambda p: p.requires_grad, model.parameters())
-#parameters = list(parameters)
-#parameters.extend(list(filter(lambda p: p.requires_grad, model.biLstm.parameters())))
-#parameters = nn.ParameterList(list(parameters))
-#parameters.extend(list(filter(lambda p: p.requires_grad, model.mlpArcsScores.parameters())))
 
 #print(len(list(parameters))) do not ever do this
 
 optimizer = torch.optim.Adam(parameters, lr=0.01, weight_decay=1E-6)
 
-epochs = 100 if useDummyTrainData else 1 # we want to do until convergence for dummy test set
-lossgraph = []
-outputarray = []
-outputarrayarcs = []
-outputarraylabels = []
 
-start = datetime.datetime.now()
+
+#for p in model.parameters():
+#    if p.requires_grad:
+#        print(p.size())
+
+
+epochs = 300 if useDummyTrainData else 1 # we want to do until convergence for dummy test set
+
+#start = datetime.datetime.now()
+
+
+
+
+
+
 
 for epoch in range(epochs):        
 #    shuffle(sentencesDependencies)
     total_output = 0
-    for s in sentencesDependencies:
+    for sentenceIndex, s in enumerate(sentencesDependencies[:1]):
         
         # First plot gold info
         #************************************************************************
@@ -127,8 +131,7 @@ for epoch in range(epochs):
 #        # for each sentence i you do:
 #        plt.clf() # clear the plotting canvas just to be sure
 #        plt.imshow(G) # draw the heatmap
-#        plt.savefig("gold-sent-{}.pdf".format(1)) # save and give it a name: gold-sent-1.pdf for example        
-        
+#        plt.savefig("gold-sent-{}.pdf".format(sentenceIndex)) # save and give it a name: gold-sent-1.pdf for example
         
         # Zero the parameter gradients
         optimizer.zero_grad()
@@ -144,18 +147,16 @@ for epoch in range(epochs):
         tagsToIndices = [t2i[t] for t in sentenceInTags]
         tags_tensor = torch.LongTensor(tagsToIndices)
         
-        arcs_refdata = s.getHeadsForWords()
+        # Get reference data (gold) for arcs
+        arcs_refdata_tensor = torch.LongTensor(s.getHeadsForWords())
         
 #        print(s)
         # Forward pass
-        scoreTensor, labelTensor = model(words_tensor, tags_tensor, arcs_refdata)
+#        scoreTensor, labelTensor = model(words_tensor, tags_tensor, arcs_refdata_tensor)
         
         
-
-        # Get reference data (gold) for arcs
-        arcs_refdata = torch.from_numpy(arcs_refdata)
-        arcs_refdata = arcs_refdata.long()
-#
+        scoreTensor = model(words_tensor, tags_tensor, arcs_refdata_tensor)        
+#        scoreVar = Variable(scoreTensor, requires_grad=True)
 #        # also need to use the gold data for labels here:
 #        labels_refdata = s.getLabelsForWords(l2i)
 #        labels_refdata = torch.from_numpy(labels_refdata)
@@ -168,9 +169,11 @@ for epoch in range(epochs):
         loss = nn.CrossEntropyLoss()
         
         # For the arcs classification
-        modelinput_arcs = torch.t(scoreTensor)#.transpose(0,1)        
-        target_arcs = Variable(arcs_refdata)
+        modelinput_arcs = torch.t(scoreTensor)
+        target_arcs = Variable(arcs_refdata_tensor, requires_grad=False)
         loss_arcs = loss(modelinput_arcs, target_arcs)
+        print(loss_arcs.data[0])
+#        loss_arcs = loss(scoreTensor, target_arcs)
         
 #        # For the label classification
 #        modelinput_labels = labelTensor
@@ -178,41 +181,30 @@ for epoch in range(epochs):
 #        loss_labels = loss(modelinput_labels, target_labels)
 #        
         output = loss_arcs #+ loss_labels
-#        
-#        if useDummyTrainData: # stop if converging            
-#            if -1e-3 < output < 1e-3: # almost zero
-#                print('Number of epochs till convergence: {}'.format(epoch))
-#                break
-#            if epoch % 100 == 0:
-#                print('Epochs so far without convergence: {}'.format(epoch))
-#         
-        
-        
-        
+                
+#        print("params", countingParams, countingTrueParams)
+    
         output.backward()
         optimizer.step()
-        
-        outputarray.append(output.data[0])
-        outputarrayarcs.append(loss_arcs.data[0])
-#        outputarraylabels.append(loss_labels.data[0])
-        total_output += output.data[0]
-        
-        
+              
+                
+#        print("params", countingParams, countingTrueParams)
+
         
         # Then during training, for each epoch step and for each i you do:
-        m = nn.Softmax()
-        A = m(scoreTensor)
+#        m = nn.Softmax()
+#        A = m(Variable(scoreTensor))
+        A = scoreTensor
         
         plt.clf()
         numpy_A = A.data.numpy() # get the data in Variable, and then the torch Tensor as numpy array
         plt.imshow(numpy_A)
-        plt.savefig("pred-sent-{}-epoch-{}".format(1, epoch))
+        plt.savefig("pred-sent-{}-epoch-{}".format(sentenceIndex, epoch))
 
-        
-    lossgraph.append(total_output)
+print("last loss", output)
 
-#print(outputarray)
-#print(lossgraph)
+
+
 
 #print('Training time: {}'.format(datetime.datetime.now() - start))
 #
@@ -221,7 +213,9 @@ for epoch in range(epochs):
 #imagename = "DependencyParserModel_" + date + ".jpg"
 #
 #torch.save(model, savename)
-#
+
+
+
 #fig, axes = plt.subplots(2,2)
 #axes[0, 0].plot(lossgraph)
 #axes[0, 1].plot(outputarray)
