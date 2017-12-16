@@ -17,12 +17,12 @@ from torch.autograd import Variable
 filename = "DependencyParserModel_16_12.pkl" # change this each run
 model = torch.load(filename)
 
-testSentencesReader = ConlluFileReader(r"UD_English/en-ud-test.conllu")
-testSentences = testSentencesReader.readSentencesDependencies('<root>')
+#testSentencesReader = ConlluFileReader(r"UD_English/en-ud-test.conllu")
+#testSentences = testSentencesReader.readSentencesDependencies('<root>')
 
 # These are needed for sentence prep
-trainSentencesReader = ConlluFileReader(r"UD_English/en-ud-train.conllu")
-trainingSet = trainSentencesReader.getSentenceDependenciesUnknownMarker('<unk>')
+#trainSentencesReader = ConlluFileReader(r"UD_English/en-ud-train.conllu")
+#trainingSet = trainSentencesReader.getSentenceDependenciesUnknownMarker('<unk>')
 
 
 
@@ -32,17 +32,17 @@ trainSentencesReader = ConlluFileReader(r"UD_English/en-ud-train.conllu")
 trainingSet = trainSentencesReader.readSentencesDependencies('<root>')
 
 ## Just for dummy data testing 
-#nSentencesToUse = 5
-#nSentencesSoFar = 0
-#newSentencesDependencies = []
-#i = 0
-#while(nSentencesSoFar < nSentencesToUse):
-#    if(7<= len(trainingSet[i].tokens) <= 9):
-#        newSentencesDependencies.append(trainingSet[i])
-#        nSentencesSoFar += 1
-#    i += 1
-#
-#trainingSet = newSentencesDependencies
+nSentencesToUse = 5
+nSentencesSoFar = 0
+newSentencesDependencies = []
+i = 0
+while(nSentencesSoFar < nSentencesToUse):
+    if(7<= len(trainingSet[i].tokens) <= 9):
+        newSentencesDependencies.append(trainingSet[i])
+        nSentencesSoFar += 1
+    i += 1
+
+trainingSet = newSentencesDependencies
 
 
 ########################
@@ -56,7 +56,6 @@ w2i, t2i, _, _, _, i2l = buildDictionaries(trainingSet, '<unk>')
 sentencesDepsPredictions = []
 
 for s in trainingSet:
-    print(s)
     # Input prep
     sentenceInWords, sentenceInTags = s.getSentenceInWordsAndInTags() # Getting tokens and tags
 
