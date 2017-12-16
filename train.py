@@ -17,6 +17,7 @@ from torch.autograd import Variable
 from random import shuffle
 import time
 import matplotlib.pyplot as plt
+import datetime
 
 #### This is important. Remove when done double checking all the code
 #useDummyTrainData = True
@@ -93,19 +94,30 @@ parameters = filter(lambda p: p.requires_grad, model.parameters())
 optimizer = torch.optim.Adam(parameters, lr=0.01, weight_decay=1E-6)
 
 
-epochs = 1
+epochs = 8
 
 ##### For plotting sample sentences during training
 
-idsForPlottingSentences = ( [('begins', 'Nov.'), ('temper', 'problem'), ('theatre', 'surrounding'), ('Patience', 'here'), ('theme','facilities')] if useEnglish
+idsForPlottingSentences = ( [('begins', '28'), ('temper', 'problem'), ('theatre', 'surrounding'), ('Patience', 'here'), ('theme','facilities')] if useEnglish
                              else [('resolutie', 'interessanter'), ('Douglas', 'eiland'), ('zichzelf', 'Niemand'), ('opgebracht', 'berg'), ('temidden', 'demonstranten')])
 shouldPlotSentence = False
 #####
 
-loss_per_epoch = []
+loss_per_epoch = [] #create list for plotting total loss
+arcs_loss_per_epoch = [] #create list for plotting arcs loss
+labels_loss_per_epoch = [] #create list for plotting labels loss
 for epoch in range(epochs):
+    
+    if epoch % 1000 == 0:
+        print("Current epoch: {0}, timestamp: {1}".format(epoch, datetime.datetime.now()))
+    
     shuffle(trainingSet)
+    
+    #set scores to 0 for every epoch
     total_loss = 0
+    total_arcs_loss = 0
+    total_labels_loss = 0
+    
     for s in trainingSet:
         
         sentenceInWords, sentenceInTags = s.getSentenceInWordsAndInTags()
@@ -167,6 +179,10 @@ for epoch in range(epochs):
         loss_labels = loss(modelinput_labels, target_labels)
         
         output = loss_arcs + loss_labels
+        
+        #add losses to the totals
+        total_arcs_loss += loss_arcs.data[0]
+        total_labels_loss += loss_labels.data[0]
         total_loss += output.data[0] 
          
         output.backward()
@@ -182,11 +198,13 @@ for epoch in range(epochs):
             plt.clf()
             numpy_A = A.data.numpy() # get the data in Variable, and then the torch Tensor as numpy array
             plt.imshow(numpy_A)
-            plt.savefig("pred-sent-{0}_{1}-epoch-{2}".format(sentenceKey1, sentenceKey2, epoch))
+            plt.savefig("pred-sent-{0}_{1}-epoch-{2}.png".format(sentenceKey1, sentenceKey2, epoch))
         
-    
+    #add totals for every appoch 
+    arcs_loss_per_epoch.append(total_arcs_loss)
+    labels_loss_per_epoch.append(total_labels_loss) 
     loss_per_epoch.append(total_loss)
-            
+       
 
 # Save the model on disk        
 date = str(time.strftime("%d_%m"))
@@ -194,7 +212,7 @@ savename = "DependencyParserModel_" + date + ".pkl"
 
 torch.save(model, savename)
 
-imagename = "DependencyParserModel_" + date + ".jpg"
+imagename = "DependencyParserModel_TotalLoss_" + date + ".jpg"
 plt.clf()
 plt.plot(loss_per_epoch)
 plt.xlabel("epochs")
@@ -202,6 +220,25 @@ plt.ylabel("total loss")
 plt.title('Total loss over epochs')
 plt.savefig(imagename)
 plt.show()
+
+imagename = "DependencyParserModel_ArcsLoss_" + date + ".jpg"
+plt.clf()
+plt.plot(arcs_loss_per_epoch)
+plt.xlabel("epochs")
+plt.ylabel("total arcs loss")
+plt.title('Total arcs loss over epochs')
+plt.savefig(imagename)
+plt.show()
+
+imagename = "DependencyParserModel_LabelsLoss_" + date + ".jpg"
+plt.clf()
+plt.plot(labels_loss_per_epoch)
+plt.xlabel("epochs")
+plt.ylabel("total labels loss")
+plt.title('Total labels loss over epochs')
+plt.savefig(imagename)
+plt.show()
+
 
 
 # Print to check it the label prediction is working
