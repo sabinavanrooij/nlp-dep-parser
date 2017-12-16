@@ -85,6 +85,6 @@ class SentenceDependencies:
         sentenceLength = len(self.tokens)
         arr = np.zeros(sentenceLength)
         for k, v in self.tokens.items():
-            arr[k-1] = l2i[v.label]
+            arr[k] = l2i[v.label]
         
         return arr
