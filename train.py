@@ -22,10 +22,14 @@ import matplotlib.pyplot as plt
 #useDummyTrainData = True
 ####
 
+useEnglish = True # Change to false for Dutch
+
+trainFileName = r"UD_English/en-ud-train.conllu" if useEnglish else r"UD_Dutch/nl-ud-train.conllu"
+
 unknownMarker = '<unk>'
 rootMarker = '<root>'
 
-sentencesReader = ConlluFileReader(r"UD_English/en-ud-train.conllu")
+sentencesReader = ConlluFileReader(trainFileName)
 word2VecInputs = sentencesReader.readSentencesDependencies(rootMarker)
 trainingSet = sentencesReader.getSentenceDependenciesUnknownMarker(unknownMarker)
 
@@ -57,8 +61,9 @@ minCountWord2Vec_tags = 0
 POSTagsModel = Word2Vec(sentencesInTags, size=posTags_embeddings_dim, window=5, min_count=minCountWord2Vec_tags, workers=4)
 
 # Read the word embeddings
-wordEmbeddingsReader = GloVeFileReader(r"GloVe/glove.6B.50d.txt")
-wordsEmbeddings = wordEmbeddingsReader.readWordEmbeddings()
+if useEnglish:
+    wordEmbeddingsReader = GloVeFileReader(r"GloVe/glove.6B.50d.txt")
+    wordsEmbeddings = wordEmbeddingsReader.readWordEmbeddings()
 
 # Or train the embeddings too
 wordsModel = Word2Vec(sentencesInWords, size=word_embeddings_dim, window=5, min_count=minCountWord2Vec_words, workers=4)
@@ -71,7 +76,7 @@ labelsUniqueCount = len(l2i)
 # Words that do not have a corresponding embedding (aka. unknown and root) will start with a random vector
 pretrainedWordEmbeddings = np.random.rand(vocabularySize, word_embeddings_dim)
 for k,v in i2w.items():
-    if v in wordsEmbeddings:
+    if useEnglish and v in wordsEmbeddings:
         pretrainedWordEmbeddings[k] = wordsEmbeddings[v]
     elif v in wordsModel.wv.vocab:
         pretrainedWordEmbeddings[k] = wordsModel[v]
@@ -92,7 +97,8 @@ epochs = 1
 
 ##### For plotting sample sentences during training
 
-idsForPlottingSentences = [('begins', 'Nov.'), ('temper', 'problem'), ('theatre', 'surrounding'), ('Patience', 'here'), ('theme','facilities')]
+idsForPlottingSentences = ( [('begins', 'Nov.'), ('temper', 'problem'), ('theatre', 'surrounding'), ('Patience', 'here'), ('theme','facilities')] if useEnglish
+                             else [('resolutie', 'interessanter'), ('Douglas', 'eiland'), ('zichzelf', 'Niemand'), ('opgebracht', 'berg'), ('temidden', 'demonstranten')])
 shouldPlotSentence = False
 #####
 
@@ -100,7 +106,7 @@ loss_per_epoch = []
 for epoch in range(epochs):
     shuffle(trainingSet)
     total_loss = 0
-    for s in trainingSet:
+    for s in trainingSet[:1]:
         
         sentenceInWords, sentenceInTags = s.getSentenceInWordsAndInTags()
         
