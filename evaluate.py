@@ -14,24 +14,24 @@ from mst import mst
 import numpy as np
 from torch.autograd import Variable
 
-filename = "DependencyParserModel_16_12.pkl" # change this each run
+modelId = "16_12"  # change this each run
+filename = "DependencyParserModel_{}.pkl".format(modelId)
 model = torch.load(filename)
 
 testSentencesReader = ConlluFileReader(r"UD_English/en-ud-test.conllu")
 testSentences = testSentencesReader.readSentencesDependencies('<root>')
 
-# These are needed for sentence prep
+ # These are needed for sentence prep
 trainSentencesReader = ConlluFileReader(r"UD_English/en-ud-train.conllu")
 trainingSet = trainSentencesReader.getSentenceDependenciesUnknownMarker('<unk>')
 
 
-
 ######################### Remove this when done testing
 
-trainSentencesReader = ConlluFileReader(r"UD_English/en-ud-train.conllu")
-trainingSet = trainSentencesReader.readSentencesDependencies('<root>')
-
-## Just for dummy data testing 
+#trainSentencesReader = ConlluFileReader(r"UD_English/en-ud-train.conllu")
+#trainingSet = trainSentencesReader.readSentencesDependencies('<root>')
+#
+### Just for dummy data testing 
 #nSentencesToUse = 5
 #nSentencesSoFar = 0
 #newSentencesDependencies = []
@@ -44,19 +44,14 @@ trainingSet = trainSentencesReader.readSentencesDependencies('<root>')
 #
 #trainingSet = newSentencesDependencies
 
-
 ########################
-
-
-
 
 
 w2i, t2i, _, _, _, i2l = buildDictionaries(trainingSet, '<unk>')
 
 sentencesDepsPredictions = []
 
-for s in trainingSet:
-    print(s)
+for s in testSentences:
     # Input prep
     sentenceInWords, sentenceInTags = s.getSentenceInWordsAndInTags() # Getting tokens and tags
 
@@ -74,5 +69,5 @@ for s in trainingSet:
     
     sentencesDepsPredictions.append(createSentenceDependencies(sentenceInWords, sentenceInTags, headsForWords, [i2l[l] for l in labelsForWords]))
 
-writer = ConlluFileWriter('output/predictions_dummy_16_12.conllu')
+writer = ConlluFileWriter('output/predictions_{}.conllu'.format(modelId))
 writer.write(sentencesDepsPredictions)
