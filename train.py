@@ -146,14 +146,14 @@ for epoch in range(epochs):
         target_labels = Variable(labels_refdata)
         loss_labels = loss(modelinput_labels, target_labels)
         
-        output = loss_arcs #+ loss_labels
-#        print(output.data[0]) 
+        output = loss_arcs + loss_labels
+        print(output.data[0]) 
          
         output.backward()
         optimizer.step()
                 
         # Plot prediction        
-        m = nn.Softmax()
+        m = nn.Softmax(dim=1)
         A = m(scoreTensor)
         A = torch.t(A)
     
@@ -169,4 +169,6 @@ savename = "DependencyParserModel_" + date + ".pkl"
 
 torch.save(model, savename)
 
-
+# Print to check it the label prediction is working
+for i in range(labelTensor.size()[0]):
+    predictedlabel = labelTensor[i,:]
