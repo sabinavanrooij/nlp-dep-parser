@@ -16,8 +16,9 @@ undefinedField = '_'
 class ConlluFileReader:
     def __init__(self, filePath):
         self.filePath = filePath
+        self.sentencesDependencies = None
         
-    def readSentencesDependencies(self, rootMarker=None):
+    def readSentencesDependencies(self, rootMarker):
         self.wordCounts = Counter()
         f = open(self.filePath, 'r')
         sentencesDeps = []
@@ -46,8 +47,7 @@ class ConlluFileReader:
                 head = int(head)
             
             # Insert the root node first
-            if rootMarker != None and index == 1:
-                sentenceDep.addToken(Token(index=0, word=rootMarker, POSTag=rootMarker, head=0, label='root'))            
+            sentenceDep.addToken(Token(index=0, word=rootMarker, POSTag=rootMarker, head=0, label=rootMarker))            
             
             sentenceDep.addToken(Token(index=index, word=items[1], POSTag=items[3], head=head, label=items[7]))
             self.wordCounts[items[1]] += 1            
@@ -59,7 +59,7 @@ class ConlluFileReader:
         
     def getSentenceDependenciesUnknownMarker(self, unknownMarker):
         if self.sentencesDependencies == None:
-            sentencesDeps = copy.deepcopy(self.readSentencesDependencies())
+            sentencesDeps = copy.deepcopy(self.readSentencesDependencies('<root>'))
         else:
             sentencesDeps = copy.deepcopy(self.sentencesDependencies)
    
