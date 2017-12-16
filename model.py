@@ -10,7 +10,6 @@ import torch
 import torch.nn as nn
 from torch.autograd import Variable
 from MLP import MLP
-#import math
 
 #def disableTrainingForEmbeddings(*embeddingLayers):
 #    for e in embeddingLayers:
@@ -60,16 +59,9 @@ class DependencyParseModel(nn.Module):
     def forward(self, words_tensor, tags_tensor, arcs_refdata_tensor):
 
         scoreTensor = self.predictArcs(words_tensor, tags_tensor)
-        labelTensor = self.predictLabels(arcs_refdata_tensor)        
-
-#        hvectorConcatForArcs = torch.cat((self.hVector[0, :, :], self.hVector[1, :, :]), 1)
-#        
-#        for i in range(nWordsInSentence + 1):
-#            for j in range(nWordsInSentence + 1):             
-#                scoreTensor[i,j] = self.mlpArcsScores(hvectorConcatForArcs).data[0,0]
+        labelTensor = self.predictLabels(arcs_refdata_tensor)
 
         return scoreTensor,labelTensor
-#        return scoreTensor, labelTensor
 
     def predictArcs(self, words_tensor, tags_tensor):        
                 
@@ -104,29 +96,16 @@ class DependencyParseModel(nn.Module):
                     scoreVar = self.mlpArcsScores(hvectorConcatForArcs)
                     scoreTensor[head, dep] = scoreVar
                 
-#                hvectorConcatForArcs = torch.cat((self.hVector[dep, :, :], self.hVector[head, :, :]), 1)
-#                scoreVar = self.mlpArcsScores(hvectorConcatForArcs)
-#                scoreTensor[dep + 1, head + 1] = scoreVar
-                
         return scoreTensor
     
-    def predictLabels(self, arcs_refdata_tensor):
-        # headsIndices is nWordsInSentence + 1 because it's accounting for the root first position
-        
+    def predictLabels(self, arcs_refdata_tensor):        
         # MLP for labels
         # Creation of matrix with label-probabilities. size: (length of sentence) x (unique tag count)
-        labelTensor = Variable(torch.zeros(len(arcs_refdata_tensor), self.label_uniqueCount))
-        
-        # WE DONT REALLY FILL IN THE WHOLE THING> CHECK THIS!!
-        
+        labelTensor = Variable(torch.zeros(len(arcs_refdata_tensor), self.label_uniqueCount))        
         assert len(arcs_refdata_tensor) == self.hVector.size()[0]
 
-        for i, head in enumerate(arcs_refdata_tensor[1:]):
-            # skip all elements that have root (0) as head since we don't have hVectors for root and thus nothing to concatenate
-            if head == 0:
-                continue
-            
-            hvectorConcatForLabels = torch.cat((self.hVector[i, :, :], self.hVector[head - 1, :, :]), 1)
+        for i, head in enumerate(arcs_refdata_tensor):            
+            hvectorConcatForLabels = torch.cat((self.hVector[i, :, :], self.hVector[head, :, :]), 1)
             score = self.mlpLabels(hvectorConcatForLabels)
             labelTensor[i, :] = score
         
