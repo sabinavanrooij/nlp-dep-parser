@@ -20,7 +20,7 @@ import matplotlib.pyplot as plt
 
 #### This is important. Remove when done double checking all the code
 
-useDummyTrainData = True
+useDummyTrainData = False
 
 ####
 
@@ -90,12 +90,14 @@ parameters = filter(lambda p: p.requires_grad, model.parameters())
 
 optimizer = torch.optim.Adam(parameters, lr=0.01, weight_decay=1E-6)
 
-epochs = 50 if useDummyTrainData else 1 # we want to do until convergence for dummy test set
+epochs = 50 if useDummyTrainData else 10 # we want to do until convergence for dummy test set
 
+
+loss_per_epoch = []
 for epoch in range(epochs):        
 #    shuffle(trainingSet)
-    total_output = 0
-    for sentenceIndex, s in enumerate(trainingSet):
+    total_loss = 0
+    for sentenceIndex, s in enumerate(trainingSet[:5]):
         
         # Plot gold info
         if epoch == 0:
@@ -147,20 +149,21 @@ for epoch in range(epochs):
         loss_labels = loss(modelinput_labels, target_labels)
         
         output = loss_arcs + loss_labels
-#        print(output.data[0]) 
+        total_loss += output.data[0] 
          
         output.backward()
         optimizer.step()
-                
-        # Plot prediction        
-        m = nn.Softmax(dim=1)
-        A = m(scoreTensor)
-        A = torch.t(A)
     
-        plt.clf()
-        numpy_A = A.data.numpy() # get the data in Variable, and then the torch Tensor as numpy array
-        plt.imshow(numpy_A)
-        plt.savefig("pred-sent-{}-epoch-{}".format(sentenceIndex, epoch))
+    loss_per_epoch.append(total_loss)
+        # Plot prediction        
+#        m = nn.Softmax(dim=1)
+#        A = m(scoreTensor)
+#        A = torch.t(A)
+    
+#        plt.clf()
+#        numpy_A = A.data.numpy() # get the data in Variable, and then the torch Tensor as numpy array
+#        plt.imshow(numpy_A)
+#        plt.savefig("pred-sent-{}-epoch-{}".format(sentenceIndex, epoch))
             
 
 # Save the model on disk        
@@ -169,9 +172,19 @@ savename = "DependencyParserModel_" + date + ".pkl"
 
 torch.save(model, savename)
 
+imagename = "DependencyParserModel_" + date + ".jpg"
+plt.clf()
+plt.plot(loss_per_epoch)
+plt.xlabel("epochs")
+plt.ylabel("total loss")
+plt.title('Total loss over epochs')
+plt.savefig(imagename)
+plt.show()
+
+
 # Print to check it the label prediction is working
-for i in range(labelTensor.size()[0]):
-    dist_labels = labelTensor[i,:]
-    argmax = dist_labels.max(0)[1].data[0] 
-    predicted_label = i2l[argmax]
-    print(i,predicted_label)
+#for i in range(labelTensor.size()[0]):
+#    dist_labels = labelTensor[i,:]
+#    argmax = dist_labels.max(0)[1].data[0] 
+#    predicted_label = i2l[argmax]
+#    print(i,predicted_label)
