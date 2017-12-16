@@ -16,7 +16,7 @@ def createSentenceDependencies(sentenceInWords, sentenceInTags, headsArr, labels
         # Do not print root
         if i == 0:
             continue
-        print(headsArr)
+        
         sentenceDep.addToken(Token(index=i, word=w, POSTag=sentenceInTags[i], head=headsArr[i], label=labels[i]))
         
     return sentenceDep
