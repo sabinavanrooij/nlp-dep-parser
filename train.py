@@ -88,7 +88,7 @@ parameters = filter(lambda p: p.requires_grad, model.parameters())
 optimizer = torch.optim.Adam(parameters, lr=0.01, weight_decay=1E-6)
 
 
-epochs = 50
+epochs = 1
 
 ##### For plotting sample sentences during training
 
@@ -98,19 +98,19 @@ shouldPlotSentence = False
 
 loss_per_epoch = []
 for epoch in range(epochs):
-#    shuffle(trainingSet)
+    shuffle(trainingSet)
     total_loss = 0
-    for sentenceIndex, s in enumerate(trainingSet[:5]):
+    for sentenceIndex, s in enumerate(trainingSet):
         
         sentenceInWords, sentenceInTags = s.getSentenceInWordsAndInTags()
         
-        shouldPlotSentence = (7 <= len(sentenceInWords) <= 10)
-        if shouldPlotSentence:
+        shouldPlotSentence = False
+        hasDesiredLength = (7 <= len(sentenceInWords) <= 10)
+        if hasDesiredLength:
             for (key1, key2) in idsForPlottingSentences:
                 if key1 in sentenceInWords and key2 in sentenceInWords:
                     shouldPlotSentence = True
                     break
-            shouldPlotSentence = False
         
         # Plot gold info
         if shouldPlotSentence and epoch == 0:
