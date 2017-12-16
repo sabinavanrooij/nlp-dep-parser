@@ -1,9 +1,27 @@
 # nlp-dep-parser
 NLP project on dependency parsers
 
-<b>FINAL REPORT Template</b>: https://www.overleaf.com/12707057qsjgmmyjnswh
+<b>Final Report</b>: https://www.overleaf.com/12707057qsjgmmyjnswh
 
 Requirements for the report: https://github.com/tdeoskar/NLP1-2017/blob/master/project-reqs.md
+
+
+
+<b> TO DO: </b>
+
+- Make plot of one sentence over epochs
+
+- Make plot of loss over epochs
+
+- Train the model in English and Dutch
+
+- Parse sentences in test set
+
+- Write results  
+
+
+
+(- Handle multiple cycles in the MST algo)
 
 
 Milestone:
@@ -37,16 +55,3 @@ Concatenate these word embeddings <i>Done</i>
 LSTM layer <i>Done</i>
 
 
-<b> TO DO: </b>
-
-- Implementation of MLP2 in pytorch (label classification)
-
-- Change cross entropy functions 
-
-- Translation from MST to CoNLL file
-
-- Gold thingy for the labels
-
-
-
-- Handle multiple cycles in the MST algo
