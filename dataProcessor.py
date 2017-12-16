@@ -9,7 +9,7 @@ Created on Tue Nov 28 14:28:08 2017
 from collections import defaultdict
 
 
-def buildDictionaries(sentenceDependencies, unkownMarker):        
+def buildDictionaries(sentenceDependencies, unknownMarker):        
     w2i = defaultdict(lambda: len(w2i))
     t2i = defaultdict(lambda: len(t2i))
     l2i = defaultdict(lambda: len(l2i))
