@@ -19,11 +19,8 @@ import time
 import matplotlib.pyplot as plt
 
 #### This is important. Remove when done double checking all the code
-
-useDummyTrainData = False
-
+#useDummyTrainData = True
 ####
-
 
 unknownMarker = '<unk>'
 rootMarker = '<root>'
@@ -33,19 +30,19 @@ word2VecInputs = sentencesReader.readSentencesDependencies(rootMarker)
 trainingSet = sentencesReader.getSentenceDependenciesUnknownMarker(unknownMarker)
 
 # Select 5 short sentences from the train file (of sentence length at most 10, say)
-if useDummyTrainData:
-    nSentencesToUse = 5
-    nSentencesSoFar = 0
-    newSentencesDependencies = []
-    i = 0
-    while(nSentencesSoFar < nSentencesToUse):
-        if(7<= len(word2VecInputs[i].tokens) <= 9):
-            newSentencesDependencies.append(word2VecInputs[i])
-            nSentencesSoFar += 1
-        i += 1
-    
-    word2VecInputs = newSentencesDependencies
-    trainingSet = newSentencesDependencies
+#if useDummyTrainData:
+#    nSentencesToUse = 5
+#    nSentencesSoFar = 0
+#    newSentencesDependencies = []
+#    i = 0
+#    while(nSentencesSoFar < nSentencesToUse):
+#        if(7<= len(word2VecInputs[i].tokens) <= 9):
+#            newSentencesDependencies.append(word2VecInputs[i])
+#            nSentencesSoFar += 1
+#        i += 1
+#    
+#    word2VecInputs = newSentencesDependencies
+#    trainingSet = newSentencesDependencies
 
 
 w2i, t2i, l2i, i2w, i2t, i2l = buildDictionaries(trainingSet, unknownMarker)
@@ -53,7 +50,7 @@ sentencesInWords, sentencesInTags = getTrainingSetsForWord2Vec(word2VecInputs)
 
 word_embeddings_dim = 50
 posTags_embeddings_dim = 50
-minCountWord2Vec_words = 1 if useDummyTrainData else 5
+minCountWord2Vec_words = 5
 minCountWord2Vec_tags = 0
 
 # Train the POS tags
@@ -90,32 +87,46 @@ parameters = filter(lambda p: p.requires_grad, model.parameters())
 
 optimizer = torch.optim.Adam(parameters, lr=0.01, weight_decay=1E-6)
 
-epochs = 50 if useDummyTrainData else 10 # we want to do until convergence for dummy test set
 
+epochs = 50
+
+##### For plotting sample sentences during training
+
+idsForPlottingSentences = [('begins', 'Nov.'), ('temper', 'problem'), ('theatre', 'surrounding'), ('Patience', 'here'), ('theme','facilities')]
+shouldPlotSentence = False
+#####
 
 loss_per_epoch = []
-for epoch in range(epochs):        
+for epoch in range(epochs):
 #    shuffle(trainingSet)
     total_loss = 0
     for sentenceIndex, s in enumerate(trainingSet[:5]):
         
+        sentenceInWords, sentenceInTags = s.getSentenceInWordsAndInTags()
+        
+        shouldPlotSentence = (7 <= len(sentenceInWords) <= 10)
+        if shouldPlotSentence:
+            for (key1, key2) in idsForPlottingSentences:
+                if key1 in sentenceInWords and key2 in sentenceInWords:
+                    shouldPlotSentence = True
+                    break
+            shouldPlotSentence = False
+        
         # Plot gold info
-        if epoch == 0:
+        if shouldPlotSentence and epoch == 0:
             G = np.zeros((len(s.tokens), len(s.tokens)))
             for i,h in enumerate(s.getHeadsForWords()):            
                 G[int(h), i] = 1
                         
             plt.clf() # clear the plotting canvas just to be sure
             plt.imshow(G) # draw the heatmap
-            plt.savefig("gold-sent-{}.png".format(sentenceIndex)) # save and give it a name: gold-sent-1.pdf for example
-            
+            plt.savefig("gold-sent-{}.png".format(sentenceIndex))
+        
         # Zero the parameter gradients
         optimizer.zero_grad()
         
         # Clear hidden and cell previous state
         model.hiddenState, model.cellState = model.initHiddenCellState()
-
-        sentenceInWords, sentenceInTags = s.getSentenceInWordsAndInTags()
     
         wordsToIndices = [w2i[w] for w in sentenceInWords]
         words_tensor = Variable(torch.LongTensor(wordsToIndices),requires_grad=False)
@@ -131,9 +142,6 @@ for epoch in range(epochs):
         # also need to use the gold data for labels here:
         labels_refdata = s.getLabelsForWords(l2i)
         labels_refdata = torch.from_numpy(labels_refdata).long()
-        
-        #get sentence length
-        sentence_length = len(s.tokens)
                 
         # Calculate loss
         loss = nn.CrossEntropyLoss()
@@ -153,21 +161,25 @@ for epoch in range(epochs):
          
         output.backward()
         optimizer.step()
+        
+        
+        # Plot prediction
+        if shouldPlotSentence:
+            m = nn.Softmax(dim=1)
+            A = m(scoreTensor)
+            A = torch.t(A)
+        
+            plt.clf()
+            numpy_A = A.data.numpy() # get the data in Variable, and then the torch Tensor as numpy array
+            plt.imshow(numpy_A)
+            plt.savefig("pred-sent-{}-epoch-{}".format(sentenceIndex, epoch))
+        
     
     loss_per_epoch.append(total_loss)
-        # Plot prediction        
-#        m = nn.Softmax(dim=1)
-#        A = m(scoreTensor)
-#        A = torch.t(A)
-    
-#        plt.clf()
-#        numpy_A = A.data.numpy() # get the data in Variable, and then the torch Tensor as numpy array
-#        plt.imshow(numpy_A)
-#        plt.savefig("pred-sent-{}-epoch-{}".format(sentenceIndex, epoch))
             
 
 # Save the model on disk        
-date = str(time.strftime("%d_%m_%H_%M"))
+date = str(time.strftime("%d_%m"))
 savename = "DependencyParserModel_" + date + ".pkl"
 
 torch.save(model, savename)
