@@ -14,15 +14,20 @@ from mst import mst
 import numpy as np
 from torch.autograd import Variable
 
+useEnglish = True # change to false for Dutch
+
 modelId = "16_12"  # change this each run
 filename = "DependencyParserModel_{}.pkl".format(modelId)
 model = torch.load(filename)
 
-testSentencesReader = ConlluFileReader(r"UD_English/en-ud-test.conllu")
+testFileName = r"UD_English/en-ud-test.conllu" if useEnglish else r"UD_Dutch/nl-ud-test.conllu"
+testSentencesReader = ConlluFileReader(testFileName)
 testSentences = testSentencesReader.readSentencesDependencies('<root>')
 
+trainFileName = r"UD_English/en-ud-train.conllu" if useEnglish else r"UD_Dutch/nl-ud-train.conllu"
+
  # These are needed for sentence prep
-trainSentencesReader = ConlluFileReader(r"UD_English/en-ud-train.conllu")
+trainSentencesReader = ConlluFileReader(trainFileName)
 trainingSet = trainSentencesReader.getSentenceDependenciesUnknownMarker('<unk>')
 
 
