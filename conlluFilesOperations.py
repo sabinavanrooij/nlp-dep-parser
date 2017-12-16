@@ -7,6 +7,7 @@ Created on Tue Dec 12 13:49:31 2017
 """
 from sentenceDependencies import SentenceDependencies, Token
 from collections import Counter
+import copy
 
 commentSymbol = '#'
 itemsSeparator = '\t'
@@ -16,8 +17,8 @@ class ConlluFileReader:
     def __init__(self, filePath):
         self.filePath = filePath
         
-    def readSentencesDependencies(self, unknownMarker=None):
-        wordCounts = Counter()
+    def readSentencesDependencies(self, rootMarker=None):
+        self.wordCounts = Counter()
         f = open(self.filePath, 'r')
         sentencesDeps = []
         sentenceDep = SentenceDependencies()
@@ -44,44 +45,32 @@ class ConlluFileReader:
             else:
                 head = int(head)
             
+            # Insert the root node first
+            if rootMarker != None and index == 1:
+                sentenceDep.addToken(Token(index=0, word=rootMarker, POSTag=rootMarker, head=0, label='root'))            
+            
             sentenceDep.addToken(Token(index=index, word=items[1], POSTag=items[3], head=head, label=items[7]))
-            wordCounts[items[1]] += 1            
+            self.wordCounts[items[1]] += 1            
         
         f.close()
         
-        # Replace words with count = 1 with <unk>
-        if unknownMarker != None:
-            for s in sentencesDeps:
-                for k,v in s.tokens.items():
-                    if wordCounts[v.word] == 1:
-                        v.word = unknownMarker
+        self.sentencesDependencies = sentencesDeps
+        return sentencesDeps
         
+    def getSentenceDependenciesUnknownMarker(self, unknownMarker):
+        if self.sentencesDependencies == None:
+            sentencesDeps = copy.deepcopy(self.readSentencesDependencies())
+        else:
+            sentencesDeps = copy.deepcopy(self.sentencesDependencies)
+   
+        # Replace words with count = 1 with <unk>
+        for s in sentencesDeps:
+            for k,v in s.tokens.items():
+                if self.wordCounts[v.word] == 1:
+                    v.word = unknownMarker
+    
         return sentencesDeps    
 
-    def readSentences(self):
-        f = open(self.filePath, 'r')
-        sentences = []
-        sentence = []
-        for line in f.readlines():
-            if line.startswith(commentSymbol):
-                continue
-            
-            if line.isspace(): # end of the sentence
-                sentences.append(sentence)
-                sentence = []
-                continue
-                
-            items = line.split(itemsSeparator)
-            
-            # this can be a float or a range if the word is implicit in the sentence
-            if not float(items[0]).is_integer():
-                continue
-            
-            sentence.append(items[1]) # word
-        
-        f.close() 
-        
-        return sentences
 
 class ConlluFileWriter:
     def __init__(self, filePath):
