@@ -91,7 +91,7 @@ parameters = filter(lambda p: p.requires_grad, model.parameters())
 
 optimizer = torch.optim.Adam(parameters, lr=0.01, weight_decay=1E-6)
 
-epochs = 60 if useDummyTrainData else 1 # we want to do until convergence for dummy test set
+epochs = 70 if useDummyTrainData else 1 # we want to do until convergence for dummy test set
 
 #start = datetime.datetime.now()
 
@@ -156,7 +156,7 @@ for epoch in range(epochs):
         loss_labels = loss(modelinput_labels, target_labels)
         
         output = loss_arcs #+ loss_labels
-        print(output.data[0]) 
+#        print(output.data[0]) 
          
         output.backward()
         optimizer.step()
