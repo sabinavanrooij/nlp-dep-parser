@@ -13,7 +13,11 @@ def createSentenceDependencies(sentenceInWords, sentenceInTags, headsArr, labels
     
     sentenceDep = SentenceDependencies()
     for i, w in enumerate(sentenceInWords):
-        sentenceDep.addToken(Token(index=i+1, word=w, POSTag=sentenceInTags[i], head=headsArr[i], label=labels[i]))
+        # Do not print root
+        if i == 0:
+            continue
+        
+        sentenceDep.addToken(Token(index=i, word=w, POSTag=sentenceInTags[i], head=headsArr[i], label=labels[i]))
         
     return sentenceDep
         
