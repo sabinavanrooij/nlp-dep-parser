@@ -17,7 +17,6 @@ from torch.autograd import Variable
 from random import shuffle
 import time
 import matplotlib.pyplot as plt
-import datetime
 
 #### This is important. Remove when done double checking all the code
 
@@ -93,25 +92,17 @@ optimizer = torch.optim.Adam(parameters, lr=0.01, weight_decay=1E-6)
 
 epochs = 70 if useDummyTrainData else 1 # we want to do until convergence for dummy test set
 
-#start = datetime.datetime.now()
-
 for epoch in range(epochs):        
 #    shuffle(trainingSet)
     total_output = 0
     for sentenceIndex, s in enumerate(trainingSet):
         
-        # First plot gold info
-        #************************************************************************
-        # G the gold 0/1-matrix as numpy array (pyplot cannot plot torch Tensors)
-        # S is the score torch Tensor: the output of your model
-        # A is the softmax version of S, also a torch Tensor! (actually more acurately it's a Variable(Tensor(..))
-        #************************************************************************
+        # Plot gold info
         if epoch == 0:
             G = np.zeros((len(s.tokens), len(s.tokens)))
             for i,h in enumerate(s.getHeadsForWords()):            
                 G[int(h), i] = 1
-            
-            # for each sentence i you do:
+                        
             plt.clf() # clear the plotting canvas just to be sure
             plt.imshow(G) # draw the heatmap
             plt.savefig("gold-sent-{}.png".format(sentenceIndex)) # save and give it a name: gold-sent-1.pdf for example
@@ -161,18 +152,21 @@ for epoch in range(epochs):
         output.backward()
         optimizer.step()
                 
-        # Then during training, for each epoch step and for each i you do:
+        # Plot prediction        
         m = nn.Softmax()
         A = m(scoreTensor)
         A = torch.t(A)
-
+    
         plt.clf()
         numpy_A = A.data.numpy() # get the data in Variable, and then the torch Tensor as numpy array
         plt.imshow(numpy_A)
         plt.savefig("pred-sent-{}-epoch-{}".format(sentenceIndex, epoch))
-        
+            
 
-        
-print("last loss", output)
+# Save the model on disk        
+date = str(time.strftime("%d_%m_%H_%M"))
+savename = "DependencyParserModel_" + date + ".pkl"
+
+torch.save(model, savename)
 
 
