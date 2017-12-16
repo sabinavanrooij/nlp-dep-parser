@@ -19,11 +19,8 @@ import time
 import matplotlib.pyplot as plt
 
 #### This is important. Remove when done double checking all the code
-
 #useDummyTrainData = True
-
 ####
-
 
 unknownMarker = '<unk>'
 rootMarker = '<root>'
@@ -90,30 +87,46 @@ parameters = filter(lambda p: p.requires_grad, model.parameters())
 
 optimizer = torch.optim.Adam(parameters, lr=0.01, weight_decay=1E-6)
 
-epochs = 1
 
-for epoch in range(epochs):        
-    shuffle(trainingSet)
-    total_output = 0
-    for sentenceIndex, s in enumerate(trainingSet[:300]):
+epochs = 50
+
+##### For plotting sample sentences during training
+
+idsForPlottingSentences = [('begins', 'Nov.'), ('temper', 'problem'), ('theatre', 'surrounding'), ('Patience', 'here'), ('theme','facilities')]
+shouldPlotSentence = False
+#####
+
+loss_per_epoch = []
+for epoch in range(epochs):
+#    shuffle(trainingSet)
+    total_loss = 0
+    for sentenceIndex, s in enumerate(trainingSet[:5]):
+        
+        sentenceInWords, sentenceInTags = s.getSentenceInWordsAndInTags()
+        
+        shouldPlotSentence = (7 <= len(sentenceInWords) <= 10)
+        if shouldPlotSentence:
+            for (key1, key2) in idsForPlottingSentences:
+                if key1 in sentenceInWords and key2 in sentenceInWords:
+                    shouldPlotSentence = True
+                    break
+            shouldPlotSentence = False
         
         # Plot gold info
-#        if epoch == 0:
-#            G = np.zeros((len(s.tokens), len(s.tokens)))
-#            for i,h in enumerate(s.getHeadsForWords()):            
-#                G[int(h), i] = 1
-#                        
-#            plt.clf() # clear the plotting canvas just to be sure
-#            plt.imshow(G) # draw the heatmap
-#            plt.savefig("gold-sent-{}.png".format(sentenceIndex)) # save and give it a name: gold-sent-1.pdf for example
-            
+        if shouldPlotSentence and epoch == 0:
+            G = np.zeros((len(s.tokens), len(s.tokens)))
+            for i,h in enumerate(s.getHeadsForWords()):            
+                G[int(h), i] = 1
+                        
+            plt.clf() # clear the plotting canvas just to be sure
+            plt.imshow(G) # draw the heatmap
+            plt.savefig("gold-sent-{}.png".format(sentenceIndex))
+        
         # Zero the parameter gradients
         optimizer.zero_grad()
         
         # Clear hidden and cell previous state
         model.hiddenState, model.cellState = model.initHiddenCellState()
-
-        sentenceInWords, sentenceInTags = s.getSentenceInWordsAndInTags()
     
         wordsToIndices = [w2i[w] for w in sentenceInWords]
         words_tensor = Variable(torch.LongTensor(wordsToIndices),requires_grad=False)
@@ -129,9 +142,6 @@ for epoch in range(epochs):
         # also need to use the gold data for labels here:
         labels_refdata = s.getLabelsForWords(l2i)
         labels_refdata = torch.from_numpy(labels_refdata).long()
-        
-        #get sentence length
-        sentence_length = len(s.tokens)
                 
         # Calculate loss
         loss = nn.CrossEntropyLoss()
@@ -147,21 +157,25 @@ for epoch in range(epochs):
         loss_labels = loss(modelinput_labels, target_labels)
         
         output = loss_arcs + loss_labels
-#        print(output.data[0]) 
+        total_loss += output.data[0] 
          
         output.backward()
         optimizer.step()
-                
-        # Plot prediction 
-#        if useDummyTrainData and epoch == epochs -1:
-#            m = nn.Softmax(dim=1)
-#            A = m(scoreTensor)
-#            A = torch.t(A)
-#        
-#            plt.clf()
-#            numpy_A = A.data.numpy() # get the data in Variable, and then the torch Tensor as numpy array
-#            plt.imshow(numpy_A)
-#            plt.savefig("pred-sent-{}-epoch-{}".format(sentenceIndex, epoch))
+        
+        
+        # Plot prediction
+        if shouldPlotSentence:
+            m = nn.Softmax(dim=1)
+            A = m(scoreTensor)
+            A = torch.t(A)
+        
+            plt.clf()
+            numpy_A = A.data.numpy() # get the data in Variable, and then the torch Tensor as numpy array
+            plt.imshow(numpy_A)
+            plt.savefig("pred-sent-{}-epoch-{}".format(sentenceIndex, epoch))
+        
+    
+    loss_per_epoch.append(total_loss)
             
 
 # Save the model on disk        
@@ -170,4 +184,19 @@ savename = "DependencyParserModel_" + date + ".pkl"
 
 torch.save(model, savename)
 
+imagename = "DependencyParserModel_" + date + ".jpg"
+plt.clf()
+plt.plot(loss_per_epoch)
+plt.xlabel("epochs")
+plt.ylabel("total loss")
+plt.title('Total loss over epochs')
+plt.savefig(imagename)
+plt.show()
 
+
+# Print to check it the label prediction is working
+#for i in range(labelTensor.size()[0]):
+#    dist_labels = labelTensor[i,:]
+#    argmax = dist_labels.max(0)[1].data[0] 
+#    predicted_label = i2l[argmax]
+#    print(i,predicted_label)
