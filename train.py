@@ -152,16 +152,15 @@ for epoch in range(epochs):
         output.backward()
         optimizer.step()
                 
-        # Plot prediction
-        if True:#epoch == epochs - 1:
-            m = nn.Softmax()
-            A = m(scoreTensor)
-            A = torch.t(A)
+        # Plot prediction        
+        m = nn.Softmax()
+        A = m(scoreTensor)
+        A = torch.t(A)
     
-            plt.clf()
-            numpy_A = A.data.numpy() # get the data in Variable, and then the torch Tensor as numpy array
-            plt.imshow(numpy_A)
-            plt.savefig("pred-sent-{}-epoch-{}".format(sentenceIndex, epoch))
+        plt.clf()
+        numpy_A = A.data.numpy() # get the data in Variable, and then the torch Tensor as numpy array
+        plt.imshow(numpy_A)
+        plt.savefig("pred-sent-{}-epoch-{}".format(sentenceIndex, epoch))
             
 
 # Save the model on disk        

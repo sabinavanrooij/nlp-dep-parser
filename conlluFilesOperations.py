@@ -16,6 +16,7 @@ undefinedField = '_'
 class ConlluFileReader:
     def __init__(self, filePath):
         self.filePath = filePath
+        self.sentencesDependencies = None
         
     def readSentencesDependencies(self, rootMarker):
         self.wordCounts = Counter()
