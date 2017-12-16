@@ -106,7 +106,7 @@ loss_per_epoch = []
 for epoch in range(epochs):
     shuffle(trainingSet)
     total_loss = 0
-    for s in trainingSet[:1]:
+    for s in trainingSet:
         
         sentenceInWords, sentenceInTags = s.getSentenceInWordsAndInTags()
         
