@@ -193,7 +193,7 @@ for epoch in range(epochs):
             plt.clf()
             numpy_A = A.data.numpy() # get the data in Variable, and then the torch Tensor as numpy array
             plt.imshow(numpy_A)
-            plt.savefig("pred-sent-{0}_{1}-epoch-{2}".format(sentenceKey1, sentenceKey2, epoch))
+            plt.savefig("pred-sent-{0}_{1}-epoch-{2}.png".format(sentenceKey1, sentenceKey2, epoch))
         
     #add totals for every appoch 
     arcs_loss_per_epoch.append(total_arcs_loss)
