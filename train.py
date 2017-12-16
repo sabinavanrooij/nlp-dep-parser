@@ -20,7 +20,7 @@ import matplotlib.pyplot as plt
 
 #### This is important. Remove when done double checking all the code
 
-useDummyTrainData = True
+#useDummyTrainData = True
 
 ####
 
@@ -33,19 +33,19 @@ word2VecInputs = sentencesReader.readSentencesDependencies(rootMarker)
 trainingSet = sentencesReader.getSentenceDependenciesUnknownMarker(unknownMarker)
 
 # Select 5 short sentences from the train file (of sentence length at most 10, say)
-if useDummyTrainData:
-    nSentencesToUse = 5
-    nSentencesSoFar = 0
-    newSentencesDependencies = []
-    i = 0
-    while(nSentencesSoFar < nSentencesToUse):
-        if(7<= len(word2VecInputs[i].tokens) <= 9):
-            newSentencesDependencies.append(word2VecInputs[i])
-            nSentencesSoFar += 1
-        i += 1
-    
-    word2VecInputs = newSentencesDependencies
-    trainingSet = newSentencesDependencies
+#if useDummyTrainData:
+#    nSentencesToUse = 5
+#    nSentencesSoFar = 0
+#    newSentencesDependencies = []
+#    i = 0
+#    while(nSentencesSoFar < nSentencesToUse):
+#        if(7<= len(word2VecInputs[i].tokens) <= 9):
+#            newSentencesDependencies.append(word2VecInputs[i])
+#            nSentencesSoFar += 1
+#        i += 1
+#    
+#    word2VecInputs = newSentencesDependencies
+#    trainingSet = newSentencesDependencies
 
 
 w2i, t2i, l2i, i2w, i2t, i2l = buildDictionaries(trainingSet, unknownMarker)
@@ -53,7 +53,7 @@ sentencesInWords, sentencesInTags = getTrainingSetsForWord2Vec(word2VecInputs)
 
 word_embeddings_dim = 50
 posTags_embeddings_dim = 50
-minCountWord2Vec_words = 1 if useDummyTrainData else 5
+minCountWord2Vec_words = 5
 minCountWord2Vec_tags = 0
 
 # Train the POS tags
@@ -90,22 +90,22 @@ parameters = filter(lambda p: p.requires_grad, model.parameters())
 
 optimizer = torch.optim.Adam(parameters, lr=0.01, weight_decay=1E-6)
 
-epochs = 60 if useDummyTrainData else 1 # we want to do until convergence for dummy test set
+epochs = 1
 
 for epoch in range(epochs):        
-#    shuffle(trainingSet)
+    shuffle(trainingSet)
     total_output = 0
-    for sentenceIndex, s in enumerate(trainingSet):
+    for sentenceIndex, s in enumerate(trainingSet[:300]):
         
         # Plot gold info
-        if epoch == 0:
-            G = np.zeros((len(s.tokens), len(s.tokens)))
-            for i,h in enumerate(s.getHeadsForWords()):            
-                G[int(h), i] = 1
-                        
-            plt.clf() # clear the plotting canvas just to be sure
-            plt.imshow(G) # draw the heatmap
-            plt.savefig("gold-sent-{}.png".format(sentenceIndex)) # save and give it a name: gold-sent-1.pdf for example
+#        if epoch == 0:
+#            G = np.zeros((len(s.tokens), len(s.tokens)))
+#            for i,h in enumerate(s.getHeadsForWords()):            
+#                G[int(h), i] = 1
+#                        
+#            plt.clf() # clear the plotting canvas just to be sure
+#            plt.imshow(G) # draw the heatmap
+#            plt.savefig("gold-sent-{}.png".format(sentenceIndex)) # save and give it a name: gold-sent-1.pdf for example
             
         # Zero the parameter gradients
         optimizer.zero_grad()
@@ -146,25 +146,26 @@ for epoch in range(epochs):
         target_labels = Variable(labels_refdata)
         loss_labels = loss(modelinput_labels, target_labels)
         
-        output = loss_arcs #+ loss_labels
+        output = loss_arcs + loss_labels
 #        print(output.data[0]) 
          
         output.backward()
         optimizer.step()
                 
-        # Plot prediction        
-        m = nn.Softmax()
-        A = m(scoreTensor)
-        A = torch.t(A)
-    
-        plt.clf()
-        numpy_A = A.data.numpy() # get the data in Variable, and then the torch Tensor as numpy array
-        plt.imshow(numpy_A)
-        plt.savefig("pred-sent-{}-epoch-{}".format(sentenceIndex, epoch))
+        # Plot prediction 
+#        if useDummyTrainData and epoch == epochs -1:
+#            m = nn.Softmax(dim=1)
+#            A = m(scoreTensor)
+#            A = torch.t(A)
+#        
+#            plt.clf()
+#            numpy_A = A.data.numpy() # get the data in Variable, and then the torch Tensor as numpy array
+#            plt.imshow(numpy_A)
+#            plt.savefig("pred-sent-{}-epoch-{}".format(sentenceIndex, epoch))
             
 
 # Save the model on disk        
-date = str(time.strftime("%d_%m_%H_%M"))
+date = str(time.strftime("%d_%m"))
 savename = "DependencyParserModel_" + date + ".pkl"
 
 torch.save(model, savename)
