@@ -100,16 +100,20 @@ loss_per_epoch = []
 for epoch in range(epochs):
     shuffle(trainingSet)
     total_loss = 0
-    for sentenceIndex, s in enumerate(trainingSet):
+    for s in trainingSet:
         
         sentenceInWords, sentenceInTags = s.getSentenceInWordsAndInTags()
         
         shouldPlotSentence = False
         hasDesiredLength = (7 <= len(sentenceInWords) <= 10)
+        sentenceKey1 = None
+        sentenceKey2 = None
         if hasDesiredLength:
             for (key1, key2) in idsForPlottingSentences:
                 if key1 in sentenceInWords and key2 in sentenceInWords:
                     shouldPlotSentence = True
+                    sentenceKey1 = key1
+                    sentenceKey2 = key2
                     break
         
         # Plot gold info
@@ -120,7 +124,7 @@ for epoch in range(epochs):
                         
             plt.clf() # clear the plotting canvas just to be sure
             plt.imshow(G) # draw the heatmap
-            plt.savefig("gold-sent-{}.png".format(sentenceIndex))
+            plt.savefig("gold-sent-{0}_{1}.png".format(sentenceKey1, sentenceKey2))
         
         # Zero the parameter gradients
         optimizer.zero_grad()
@@ -172,7 +176,7 @@ for epoch in range(epochs):
             plt.clf()
             numpy_A = A.data.numpy() # get the data in Variable, and then the torch Tensor as numpy array
             plt.imshow(numpy_A)
-            plt.savefig("pred-sent-{}-epoch-{}".format(sentenceIndex, epoch))
+            plt.savefig("pred-sent-{0}_{1}-epoch-{2}".format(sentenceKey1, sentenceKey2, epoch))
         
     
     loss_per_epoch.append(total_loss)
