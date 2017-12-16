@@ -89,7 +89,6 @@ class DependencyParseModel(nn.Module):
 
         nWordsInSentence = words_tensor.size()[0]
 
-        print(nWordsInSentence)
         # Creation of dependency matrix. size: (length of sentence + 1)  x (length of sentence + 1)
         scoreTensor = Variable(torch.zeros(nWordsInSentence, nWordsInSentence))
         
