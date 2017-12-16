@@ -220,8 +220,8 @@ imagename = "DependencyParserModel_ArcsLoss_" + date + ".jpg"
 plt.clf()
 plt.plot(arcs_loss_per_epoch)
 plt.xlabel("epochs")
-plt.ylabel("arcs loss")
-plt.title('Arcs loss over epochs')
+plt.ylabel("total arcs loss")
+plt.title('Total arcs loss over epochs')
 plt.savefig(imagename)
 plt.show()
 
@@ -229,8 +229,8 @@ imagename = "DependencyParserModel_LabelsLoss_" + date + ".jpg"
 plt.clf()
 plt.plot(labels_loss_per_epoch)
 plt.xlabel("epochs")
-plt.ylabel("labels loss")
-plt.title('Labels loss over epochs')
+plt.ylabel("total labels loss")
+plt.title('Total labels loss over epochs')
 plt.savefig(imagename)
 plt.show()
 
