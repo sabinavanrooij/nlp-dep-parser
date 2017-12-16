@@ -8,37 +8,32 @@ Created on Tue Nov 28 14:28:08 2017
 
 from collections import defaultdict
 
-class DataProcessor:
-    
-    def __init__(self, sentencesDependencies, unkownMarker):
-        self.sentencesDeps = sentencesDependencies
-        self.unknownMarker = unkownMarker
 
-    def buildDictionaries(self):        
-        w2i = defaultdict(lambda: len(w2i))
-        t2i = defaultdict(lambda: len(t2i))
-        l2i = defaultdict(lambda: len(l2i))
-        i2w = dict()
-        i2t = dict()
-        i2l = dict()
-        
-        for s in self.sentencesDeps:
-            for k,v in s.tokens.items():
-                i2w[w2i[v.word]] = v.word
-                i2t[t2i[v.POSTag]] = v.POSTag
-                i2l[l2i[v.label]] = v.label
-                
-        w2i = defaultdict(lambda: w2i[self.unknownMarker], w2i)
-        
-        return w2i, t2i, l2i, i2w, i2t, i2l
+def buildDictionaries(sentenceDependencies, unkownMarker):        
+    w2i = defaultdict(lambda: len(w2i))
+    t2i = defaultdict(lambda: len(t2i))
+    l2i = defaultdict(lambda: len(l2i))
+    i2w = dict()
+    i2t = dict()
+    i2l = dict()
     
-    def getTrainingSetsForWord2Vec(self):        
-        wordsTrainingSet = []
-        posTagsTrainingSet = []
-        
-        for s in self.sentencesDeps:
-            sentenceInWords, sentenceInTags = s.getSentenceInWordsAndInTags()            
-            wordsTrainingSet.append(sentenceInWords)
-            posTagsTrainingSet.append(sentenceInTags)
+    for s in sentenceDependencies:
+        for k,v in s.tokens.items():
+            i2w[w2i[v.word]] = v.word
+            i2t[t2i[v.POSTag]] = v.POSTag
+            i2l[l2i[v.label]] = v.label
             
-        return wordsTrainingSet, posTagsTrainingSet
+    w2i = defaultdict(lambda: w2i[unknownMarker], w2i)
+    
+    return w2i, t2i, l2i, i2w, i2t, i2l
+
+def getTrainingSetsForWord2Vec(sentenceDependencies):        
+    wordsTrainingSet = []
+    posTagsTrainingSet = []
+    
+    for s in sentenceDependencies:
+        sentenceInWords, sentenceInTags = s.getSentenceInWordsAndInTags()            
+        wordsTrainingSet.append(sentenceInWords[1:]) # skip root
+        posTagsTrainingSet.append(sentenceInTags[1:]) # skip root
+        
+    return wordsTrainingSet, posTagsTrainingSet

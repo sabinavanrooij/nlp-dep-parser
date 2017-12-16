@@ -70,7 +70,7 @@ class SentenceDependencies:
     def getHeadsForWords(self):
         # numpy arr where value i is the head for word i
         sentenceLength = len(self.tokens)
-        arr = np.zeros(sentenceLength + 1, dtype=int) # account for the root, first element is 0
+        arr = np.zeros(sentenceLength, dtype=int) # account for the root, first element is 0
         for k, v in self.tokens.items():
             arr[k] = v.head
         

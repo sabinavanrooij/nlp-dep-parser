@@ -12,9 +12,9 @@ from torch.autograd import Variable
 from MLP import MLP
 #import math
 
-def disableTrainingForEmbeddings(*embeddingLayers):
-    for e in embeddingLayers:
-        e.weight.requires_grad = False
+#def disableTrainingForEmbeddings(*embeddingLayers):
+#    for e in embeddingLayers:
+#        e.weight.requires_grad = False
 
 class DependencyParseModel(nn.Module):
     def __init__(self, word_embeddings_dim, tag_embeddings_dim, vocabulary_size, tag_uniqueCount, label_uniqueCount, pretrainedWordEmbeddings=None, pretrainedTagEmbeddings=None):
@@ -24,14 +24,14 @@ class DependencyParseModel(nn.Module):
         if pretrainedWordEmbeddings.any():
             assert pretrainedWordEmbeddings.shape == (vocabulary_size, word_embeddings_dim)
             self.word_embeddings.weight.data.copy_(torch.from_numpy(pretrainedWordEmbeddings))
-        
+                
         self.tag_embeddings = nn.Embedding(tag_uniqueCount, tag_embeddings_dim)
         if pretrainedTagEmbeddings.any():
             assert pretrainedTagEmbeddings.shape == (tag_uniqueCount, tag_embeddings_dim)
             self.tag_embeddings.weight.data.copy_(torch.from_numpy(pretrainedTagEmbeddings))
         
         # Save computation time by not training already trained word vectors
-        disableTrainingForEmbeddings(self.word_embeddings, self.tag_embeddings)
+#        disableTrainingForEmbeddings(self.word_embeddings, self.tag_embeddings)
         
         self.inputSize = word_embeddings_dim + tag_embeddings_dim # The number of expected features in the input x
         self.hiddenSize = self.inputSize #* 2 # 512? is this the same as outputSize?
@@ -77,18 +77,21 @@ class DependencyParseModel(nn.Module):
         wordEmbeds = self.word_embeddings(words_tensor)
         tagEmbeds = self.tag_embeddings(tags_tensor)
         
-        assert len(tags_tensor) == len(tags_tensor)
-        seq_len = len(words_tensor)
+        assert words_tensor.size()[0] == tags_tensor.size()[0]
+        nWordsInSentence = words_tensor.size()[0]
         
         inputTensor = torch.cat((wordEmbeds, tagEmbeds), 1)
         
-        self.hVector, (self.hiddenState, self.cellState) = self.biLstm(inputTensor.view(seq_len, self.batch, self.inputSize), (self.hiddenState, self.cellState))
+        self.hVector, (self.hiddenState, self.cellState) = self.biLstm(inputTensor.view(nWordsInSentence, self.batch, self.inputSize), (self.hiddenState, self.cellState))
         
         # MLP for arcs scores
+        assert words_tensor.size()[0] == tags_tensor.size()[0]
+
         nWordsInSentence = words_tensor.size()[0]
 
+        print(nWordsInSentence)
         # Creation of dependency matrix. size: (length of sentence + 1)  x (length of sentence + 1)
-        scoreTensor = Variable(torch.zeros(nWordsInSentence + 1, nWordsInSentence + 1))
+        scoreTensor = Variable(torch.zeros(nWordsInSentence, nWordsInSentence))
         
         # We know root goes to root, so adding a 1 there
         scoreTensor[0,0] = 1.0
@@ -96,16 +99,15 @@ class DependencyParseModel(nn.Module):
         # All possible combinations between head and dependent for the given sentence
         for head in range(nWordsInSentence):
             for dep in range(nWordsInSentence):
-                if head == dep:
-                    continue
+                if not(head == dep):
                 
-                hvectorConcatForArcs = torch.cat((self.hVector[head, :, :], self.hVector[dep, :, :]), 1)
-                scoreVar = self.mlpArcsScores(hvectorConcatForArcs)
-                scoreTensor[head + 1, dep + 1] = scoreVar
+                    hvectorConcatForArcs = torch.cat((self.hVector[head, :, :], self.hVector[dep, :, :]), 1)
+                    scoreVar = self.mlpArcsScores(hvectorConcatForArcs)
+                    scoreTensor[head, dep] = scoreVar
                 
-                hvectorConcatForArcs = torch.cat((self.hVector[dep, :, :], self.hVector[head, :, :]), 1)
-                scoreVar = self.mlpArcsScores(hvectorConcatForArcs)
-                scoreTensor[dep + 1, head + 1] = scoreVar
+#                hvectorConcatForArcs = torch.cat((self.hVector[dep, :, :], self.hVector[head, :, :]), 1)
+#                scoreVar = self.mlpArcsScores(hvectorConcatForArcs)
+#                scoreTensor[dep + 1, head + 1] = scoreVar
                 
         return scoreTensor
     
@@ -114,11 +116,11 @@ class DependencyParseModel(nn.Module):
         
         # MLP for labels
         # Creation of matrix with label-probabilities. size: (length of sentence) x (unique tag count)
-        labelTensor = Variable(torch.zeros(len(arcs_refdata_tensor) - 1, self.label_uniqueCount))
+        labelTensor = Variable(torch.zeros(len(arcs_refdata_tensor), self.label_uniqueCount))
         
         # WE DONT REALLY FILL IN THE WHOLE THING> CHECK THIS!!
         
-        assert len(arcs_refdata_tensor) - 1 == self.hVector.size()[0]
+        assert len(arcs_refdata_tensor) == self.hVector.size()[0]
 
         for i, head in enumerate(arcs_refdata_tensor[1:]):
             # skip all elements that have root (0) as head since we don't have hVectors for root and thus nothing to concatenate

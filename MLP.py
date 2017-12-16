@@ -18,9 +18,9 @@ class MLP(nn.Module):
         # The nonlinear function for the hidden layer
         self.tanh = nn.Tanh()
         # The output nonlinearity
-        self.sigmoid = nn.Sigmoid()
+#        self.sigmoid = nn.Sigmoid()
 
     def forward(self, input):
         hidden = self.tanh(self.i2h(input))
-        output = self.sigmoid(self.h2o(hidden))
+        output = self.h2o(hidden)
         return output
