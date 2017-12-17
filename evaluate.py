@@ -14,10 +14,10 @@ from mst import mst
 import numpy as np
 from torch.autograd import Variable
 
-useEnglish = True # change to false for Dutch
+useEnglish = False # change to false for Dutch
 
-modelId = "16_12"  # change this each run
-filename = "DependencyParserModel_{}.pkl".format(modelId)
+modelId = "{}17_12".format("" if useEnglish else "Dutch_")  # change this each run
+filename = "results/DependencyParserModel_{}.pkl".format(modelId)
 model = torch.load(filename)
 
 testFileName = r"UD_English/en-ud-test.conllu" if useEnglish else r"UD_Dutch/nl-ud-test.conllu"
