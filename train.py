@@ -108,8 +108,7 @@ arcs_loss_per_epoch = [] #create list for plotting arcs loss
 labels_loss_per_epoch = [] #create list for plotting labels loss
 for epoch in range(epochs):
     
-    if epoch % 1000 == 0:
-        print("Current epoch: {0}, timestamp: {1}".format(epoch, datetime.datetime.now()))
+    print("Current epoch: {0}, timestamp: {1}".format(epoch, datetime.datetime.now()))
     
     shuffle(trainingSet)
     
