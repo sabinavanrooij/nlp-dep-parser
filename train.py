@@ -17,6 +17,7 @@ from torch.autograd import Variable
 from random import shuffle
 import time
 import matplotlib.pyplot as plt
+import datetime
 
 #### This is important. Remove when done double checking all the code
 #useDummyTrainData = True
@@ -93,11 +94,11 @@ parameters = filter(lambda p: p.requires_grad, model.parameters())
 optimizer = torch.optim.Adam(parameters, lr=0.01, weight_decay=1E-6)
 
 
-epochs = 12
+epochs = 8
 
 ##### For plotting sample sentences during training
 
-idsForPlottingSentences = ( [('begins', 'Nov.'), ('temper', 'problem'), ('theatre', 'surrounding'), ('Patience', 'here'), ('theme','facilities')] if useEnglish
+idsForPlottingSentences = ( [('begins', '28'), ('temper', 'problem'), ('theatre', 'surrounding'), ('Patience', 'here'), ('theme','facilities')] if useEnglish
                              else [('resolutie', 'interessanter'), ('Douglas', 'eiland'), ('zichzelf', 'Niemand'), ('opgebracht', 'berg'), ('temidden', 'demonstranten')])
 shouldPlotSentence = False
 #####
@@ -106,6 +107,10 @@ loss_per_epoch = [] #create list for plotting total loss
 arcs_loss_per_epoch = [] #create list for plotting arcs loss
 labels_loss_per_epoch = [] #create list for plotting labels loss
 for epoch in range(epochs):
+    
+    if epoch % 1000 == 0:
+        print("Current epoch: {0}, timestamp: {1}".format(epoch, datetime.datetime.now()))
+    
     shuffle(trainingSet)
     
     #set scores to 0 for every epoch
