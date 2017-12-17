@@ -9,15 +9,17 @@ Requirements for the report: https://github.com/tdeoskar/NLP1-2017/blob/master/p
 
 <b> TO DO: </b>
 
-- Make plot of one sentence over epochs
+- Make plot of one sentence over epochs <i>Done</i>
 
-- Make plot of loss over epochs
+- Make plot of loss over epochs <i>Done</i>
 
-- Train the model in English and Dutch
+- Train the model in English and Dutch <i>Done</i>
 
-- Parse sentences in test set
+- Parse sentences in test set <i>Done</i>
 
 - Write results  
+
+- Write discussion and conclusion
 
 
 
