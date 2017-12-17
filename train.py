@@ -94,7 +94,7 @@ parameters = filter(lambda p: p.requires_grad, model.parameters())
 optimizer = torch.optim.Adam(parameters, lr=0.01, weight_decay=1E-6)
 
 
-epochs = 8
+epochs = 12
 
 ##### For plotting sample sentences during training
 
